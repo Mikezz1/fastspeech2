@@ -1,0 +1,15 @@
+WN.patch
+WaveGlow.patch
+ModuleList.patch
+Invertible1x1Conv.patch
+glow.py
+ConvTranspose1d.patch
+Conv1d.patch
+results/
+data/
+waveglow_256channels.pt
+wandb/
+*__/
+checkpoints/*.tar
+__*/
+.DS_Store
