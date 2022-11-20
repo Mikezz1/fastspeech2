@@ -54,18 +54,18 @@ class TrainConfig:
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-    batch_size = 1
-    epoch_len = 1
-    epochs = 500
-    n_warm_up_step = 30
+    batch_size = 100
+    epoch_len = -1
+    epochs = 250
+    n_warm_up_step = 3000
 
     learning_rate = 1e-3
     weight_decay = 1e-6
-    grad_clip_thresh = 10.0
+    grad_clip_thresh = 1.0
     decay_step = [500000, 1000000, 2000000]
 
-    save_step = 100
-    log_step = 20
+    save_step = 20
+    log_step = 50
     clear_Time = 20
 
-    batch_expand_size = 1
+    batch_expand_size = 200

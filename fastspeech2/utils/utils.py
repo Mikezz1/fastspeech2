@@ -71,11 +71,11 @@ def pad_2D_tensor(inputs, maxlen=None):
     return output
 
 
-def process_text(train_text_path, num_objects=None):
+def process_text(train_text_path, num_objects=-1):
     with open(train_text_path, "r", encoding="utf-8") as f:
         txt = []
         for i, line in enumerate(f.readlines()):
-            if (num_objects is not None) and (i > num_objects):
+            if (num_objects > -1) and (i > num_objects):
                 break
             txt.append(line)
 

@@ -83,25 +83,28 @@ class Trainer:
                     total_loss.backward()
 
                     # Logger
-                    t_l = total_loss.detach().cpu().numpy()
-                    m_l = mel_loss.detach().cpu().numpy()
-                    d_l = duration_loss.detach().cpu().numpy()
 
-                    self.logger.add_scalar("duration_loss", d_l)
-                    self.logger.add_scalar("mel_loss", m_l)
-                    self.logger.add_scalar("total_loss", t_l)
-                    self.logger.add_scalar("grad_norm", self.get_grad_norm())
-                    self.logger.add_scalar("epoch", epoch)
-                    self._log_spectrogram(
-                        mel_output[0].T, caption='predicted spectrogram')
-                    self._log_spectrogram(
-                        mel_target[0].T, caption='gt spectrogram')
-                    self._log_audio(
-                        get_inv_mel_spec(mel_output[0]),
-                        caption='predicted audio (istft)')
-                    self._log_audio(
-                        get_inv_mel_spec(mel_target[0]),
-                        caption='gt audio (istft)')
+                    if current_step % self.train_config.log_step == 0:
+                        t_l = total_loss.detach().cpu().numpy()
+                        m_l = mel_loss.detach().cpu().numpy()
+                        d_l = duration_loss.detach().cpu().numpy()
+
+                        self.logger.add_scalar("duration_loss", d_l)
+                        self.logger.add_scalar("mel_loss", m_l)
+                        self.logger.add_scalar("total_loss", t_l)
+                        self.logger.add_scalar(
+                            "grad_norm", self.get_grad_norm())
+                        self.logger.add_scalar("epoch", epoch)
+                        self._log_spectrogram(
+                            mel_output[0].T, caption='predicted spectrogram')
+                        self._log_spectrogram(
+                            mel_target[0].T, caption='gt spectrogram')
+                        self._log_audio(
+                            get_inv_mel_spec(mel_output[0]),
+                            caption='predicted audio (istft)')
+                        self._log_audio(
+                            get_inv_mel_spec(mel_target[0]),
+                            caption='gt audio (istft)')
 
                     # Clipping gradients to avoid gradient explosion
                     nn.utils.clip_grad_norm_(
