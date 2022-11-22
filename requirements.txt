@@ -2,3 +2,4 @@ torchaudio
 wandb
 gdown
 unidecode
+pyworld

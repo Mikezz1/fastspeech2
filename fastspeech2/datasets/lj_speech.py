@@ -11,15 +11,6 @@ from vocoder.audio.stft import STFT
 import torchaudio
 
 
-def calc_energy(audio):
-    """
-    Function to calculate energy using L2 norms of stft windows 
-    """
-    stft = STFT(filter_length=1024, hop_length=256, win_length=1024, )
-    magnitude, _ = stft.transform(audio)
-    return torch.linalg.norm(magnitude.squeeze(), dim=0)
-
-
 def calc_pitch(audio):
     raise NotImplementedError
 
@@ -29,12 +20,13 @@ def get_data_to_buffer(train_config):
     text = process_text(train_config.data_path,
                         num_objects=train_config.epoch_len)
 
-    wavs_dir = os.listdir(train_config.audio_ground_truth)
+    wavs_dir = sorted(os.listdir(train_config.audio_ground_truth))
     start = time.perf_counter()
-    for i in tqdm(range(len(text))):
+    for i, audio_path in zip(range(len(text)), wavs_dir):
 
         mel_gt_name = os.path.join(
-            train_config.mel_ground_truth, "ljspeech-mel-%05d.npy" % (i+1))
+            train_config.mel_ground_truth,
+            f"{audio_path.split('.')[0]}_mel.npy")
         mel_gt_target = np.load(mel_gt_name)
         duration = np.load(os.path.join(
             train_config.alignment_path, str(i)+".npy"))
@@ -44,22 +36,29 @@ def get_data_to_buffer(train_config):
 
         character = torch.from_numpy(character)
         duration = torch.from_numpy(duration)
-        mel_gt_target = torch.from_numpy(mel_gt_target)
+        mel_gt_target = torch.from_numpy(mel_gt_target).T
 
         # add pitch and energy targets
-        # path_to_audio = wavs_dir[i]
-        # waveform, _ = torchaudio.load(os.path.join(
-        #     train_config.audio_ground_truth,
-        #     path_to_audio),
-        #     normalize=True)
-        energy_target = torch.linalg.norm(
-            mel_gt_target, dim=1,  ord=2)  # calc_energy(waveform)
-        # print(f'enerrgy size : {energy_target.size()}')
-        # print(f'mel size : {mel_gt_target.shape}')
-        print(energy_target.min(), energy_target.max())
+        energy_target = np.load(os.path.join(
+            train_config.energy_ground_truth,
+            f"{audio_path.split('.')[0]}_e.npy"))
+        pitch_target = np.load(os.path.join(
+            train_config.pitch_ground_truth,
+            f"{audio_path.split('.')[0]}_p.npy"))
+
+        energy_target = torch.from_numpy(energy_target)
+        pitch_target = torch.from_numpy(pitch_target)
+
+        # transform targets
+        energy_target = (
+            energy_target - train_config.energy_mean) / train_config.energy_std
+        pitch_target = (
+            pitch_target - train_config.pitch_mean) / train_config.pitch_std
+
         buffer.append({"text": character, "duration": duration,
                        "mel_target": mel_gt_target,
-                       "energy_target": energy_target})
+                       "energy_target": energy_target,
+                       "pitch_target": pitch_target})
 
     end = time.perf_counter()
     print("cost {:.2f}s to load all data into buffer.".format(end-start))
@@ -84,6 +83,7 @@ def reprocess_tensor(batch, cut_list):
     mel_targets = [batch[ind]["mel_target"] for ind in cut_list]
     durations = [batch[ind]["duration"] for ind in cut_list]
     energy_targets = [batch[ind]["energy_target"] for ind in cut_list]
+    pitch_targets = [batch[ind]["pitch_target"] for ind in cut_list]
 
     length_text = np.array([])
     for text in texts:
@@ -111,6 +111,7 @@ def reprocess_tensor(batch, cut_list):
     mel_pos = torch.from_numpy(np.array(mel_pos))
 
     energy_targets = pad_1D_tensor(energy_targets)
+    pitch_targets = pad_1D_tensor(pitch_targets)
     texts = pad_1D_tensor(texts)
     durations = pad_1D_tensor(durations)
     mel_targets = pad_2D_tensor(mel_targets)
@@ -121,6 +122,7 @@ def reprocess_tensor(batch, cut_list):
            "mel_pos": mel_pos,
            "src_pos": src_pos,
            "mel_max_len": max_mel_len,
-           "energy_target": energy_targets}
+           "energy_target": energy_targets,
+           "pitch_target": pitch_targets}
 
     return out

@@ -44,7 +44,11 @@ class FastSpeechConfig:
 class TrainConfig:
     checkpoint_path = "./checkpoints"
     logger_path = "./logger"
-    mel_ground_truth = "./data/mels"
+
+    mel_ground_truth = "./data/melspecs"
+    pitch_ground_truth = "./data/pitch"
+    energy_ground_truth = "./data/energy"
+
     audio_ground_truth = "./data/LJSpeech-1.1/wavs"
     alignment_path = "./data/alignments"
     data_path = './data/train.txt'
@@ -70,3 +74,19 @@ class TrainConfig:
     clear_Time = 20
 
     batch_expand_size = 1
+
+    hop_length = 256
+    win_length = 1024
+    filter_length = 1024
+    sampling_rate = 22_500
+    n_mel_channels = 80
+
+    energy_mean = 31.755
+    energy_min = 0.115
+    energy_max = 227.832
+    energy_std = 29.441
+
+    pitch_mean = 149.885
+    pitch_min = 0.000
+    pitch_max = 674.820
+    pitch_std = 125.962

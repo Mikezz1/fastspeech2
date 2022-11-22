@@ -15,6 +15,7 @@ class FastSpeech(nn.Module):
             model_config, train_config.device)
 
         self.energy_adaptor = EnergyAdaptor(model_config, train_config.device)
+        self.pitch_adaptor = PitchAdaptor(model_config, train_config.device)
         self.decoder = Decoder(model_config)
 
         self.mel_linear = nn.Linear(
@@ -40,6 +41,9 @@ class FastSpeech(nn.Module):
             # print(output.size())
             output, energy_predictor_output = self.energy_adaptor(
                 output, energy_target)
+
+            output, pitch_predictor_output = self.pitch_adaptor(
+                output, energy_target)
             # print(output.size())
             # print(duration_predictor_output.size())
 
@@ -49,11 +53,12 @@ class FastSpeech(nn.Module):
             # print(output.size())
             output = self.mel_linear(output)
             # print(output.size())
-            return output, duration_predictor_output, energy_predictor_output
+            return output, duration_predictor_output, energy_predictor_output, pitch_predictor_output
         else:
 
             output, mel_pos = self.length_regulator(x, alpha)
             output = self.energy_adaptor(x)
+            output = self.pitch_adaptor(x)
             output = self.decoder(output, mel_pos)
             output = self.mel_linear(output)
             return output

@@ -54,7 +54,7 @@ class EnergyAdaptor(nn.Module):
         self.energy_embedding = nn.Embedding(256, model_config.encoder_dim)
         self.energy_bins = nn.Parameter(
             torch.exp(
-                torch.linspace(10, 80, 256 - 1)
+                torch.linspace(0, 1, 256 - 1)
             ),
             requires_grad=False,
         )
@@ -70,13 +70,48 @@ class EnergyAdaptor(nn.Module):
         if target is not None:
             embedding = self.energy_embedding(
                 torch.bucketize(target, self.energy_bins))
-            print(target)
-            print(energy_predictions)
             x = x+embedding
             return x, energy_predictions
         else:
             embedding = self.energy_embedding(
                 torch.bucketize(energy_predictions, self.energy_bins))
+            x += embedding
+            return x
+
+
+class PitchAdaptor(nn.Module):
+    """ Energy adaptor
+    Add quantization
+    """
+
+    def __init__(self,  model_config, device):
+        super(PitchAdaptor, self).__init__()
+        self.pitch_predictor = VarianceAdaptor(model_config)
+        self.device = device
+        self.pitch_embedding = nn.Embedding(256, model_config.encoder_dim)
+        self.pitch_bins = nn.Parameter(
+            torch.exp(
+                torch.linspace(0, 1, 256 - 1)
+            ),
+            requires_grad=False,
+        )
+
+    def get_pitch_embedding(self, x):
+        pitch_predictions = self.energy_predictor(x)
+        embedding = self.energy_embedding(
+            torch.bucketize(pitch_predictions, self.pitch_bins))
+        return pitch_predictions, embedding
+
+    def forward(self, x, target=None):
+        pitch_predictions = self.pitch_predictor(x)
+        if target is not None:
+            embedding = self.pitch_embedding(
+                torch.bucketize(target, self.pitch_bins))
+            x = x+embedding
+            return x, pitch_predictions
+        else:
+            embedding = self.pitch_embedding(
+                torch.bucketize(pitch_predictions, self.pitch_bins))
             x += embedding
             return x
 
