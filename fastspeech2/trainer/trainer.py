@@ -85,7 +85,7 @@ class Trainer:
                     mel_loss, duration_loss, energy_loss, pitch_loss = self.fastspeech_loss(
                         mel_output, duration_predictor_output, energy_predictor_output, pitch_predictor_output,
                         mel_target, duration, energy_target, pitch_target)
-                    total_loss = mel_loss + duration_loss + energy_loss
+                    total_loss = mel_loss + duration_loss + energy_loss + pitch_loss
 
                     # Backward
                     total_loss.backward()

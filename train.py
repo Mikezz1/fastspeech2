@@ -12,12 +12,12 @@ from torch.utils.data import DataLoader
 from torch.optim.lr_scheduler import OneCycleLR
 from dataclasses import dataclass
 from configs.base_config import *
+import dataclasses
 
 # Init configs
 mel_config = MelSpectrogramConfig()
 model_config = FastSpeechConfig()
 train_config = TrainConfig()
-
 
 # Load data
 buffer = get_data_to_buffer(train_config)
@@ -40,7 +40,7 @@ model = model.to(train_config.device)
 
 
 # Specify other stuff
-fastspeech_loss = FastSpeechLoss()
+fastspeech_loss = FastSpeechLoss(train_config)
 
 optimizer = torch.optim.AdamW(
     model.parameters(),
@@ -56,6 +56,10 @@ scheduler = OneCycleLR(optimizer, **{
     "pct_start": 0.1
 })
 
+# wandb_config = {
+#     **dataclasses.asdict(train_config),
+#     **dataclasses.asdict(model_config),
+#     **dataclasses.asdict(mel_config)}
 logger = WanDBWriter(train_config)
 trainer = Trainer(
     training_loader=training_loader, train_config=train_config, model=model,

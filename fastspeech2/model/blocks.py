@@ -28,6 +28,49 @@ class ScaledDotProductAttention(nn.Module):
         return output, attn
 
 
+# class CausalSelfAttention(nn.Module):
+#     def __init__(self, n_head, d_model, dropout=0.1):
+#         super().__init__()
+#         assert d_model % n_head == 0
+#         # key, query, value projections for all heads, but in a batch
+#         self.c_attn = nn.Linear(d_model, 3 * d_model)
+#         # output projection
+#         self.c_proj = nn.Linear(d_model, d_model)
+#         # regularization
+#         self.attn_dropout = nn.Dropout(dropout)
+#         self.resid_dropout = nn.Dropout(dropout)
+#         # causal mask to ensure that attention is only applied to the left in the input sequence
+#         # self.register_buffer("bias", torch.tril(torch.ones(config.block_size, config.block_size))
+#         #                              .view(1, 1, config.block_size, config.block_size))
+#         self.n_head = n_head
+#         self.n_embd = d_model
+
+#     def forward(self, x):
+#         B, T, C = x.size()  # batch size, sequence length, embedding dimensionality (n_embd)
+
+#         # calculate query, key, values for all heads in batch and move head forward to be the batch dim
+#         q, k, v = self.c_attn(x).split(self.n_embd, dim=2)
+#         k = k.view(B, T, self.n_head, C //
+#                    self.n_head).transpose(1, 2)  # (B, nh, T, hs)
+#         q = q.view(B, T, self.n_head, C //
+#                    self.n_head).transpose(1, 2)  # (B, nh, T, hs)
+#         v = v.view(B, T, self.n_head, C //
+#                    self.n_head).transpose(1, 2)  # (B, nh, T, hs)
+
+#         # causal self-attention; Self-attend: (B, nh, T, hs) x (B, nh, hs, T) -> (B, nh, T, T)
+#         att = (q @ k.transpose(-2, -1)) * (1.0 / torch.sqrt(k.size(-1)))
+#         # att = att.masked_fill(self.bias[:,:,:T,:T] == 0, float('-inf'))
+#         att = F.softmax(att, dim=-1)
+#         att = self.attn_dropout(att)
+#         y = att @ v  # (B, nh, T, T) x (B, nh, T, hs) -> (B, nh, T, hs)
+#         # re-assemble all head outputs side by side
+#         y = y.transpose(1, 2).contiguous().view(B, T, C)
+
+#         # output projection
+#         y = self.resid_dropout(self.c_proj(y))
+#         return y, att
+
+
 class MultiHeadAttention(nn.Module):
     ''' Multi-Head Attention module '''
 
@@ -148,13 +191,19 @@ class FFTBlock(torch.nn.Module):
         self.pos_ffn = PositionwiseFeedForward(
             d_model, d_inner, fft_conv1d_kernel, fft_conv1d_padding,
             dropout=dropout)
+        self.layer_norm = nn.LayerNorm(d_model)
 
     def forward(self, enc_input, non_pad_mask=None, slf_attn_mask=None):
+
+        residual = enc_input
         enc_output, enc_slf_attn = self.slf_attn(
             enc_input, enc_input, enc_input, mask=slf_attn_mask)
 
         if non_pad_mask is not None:
             enc_output *= non_pad_mask
+        # layer norm + residual
+
+        enc_output = self.layer_norm(enc_output + residual)
 
         enc_output = self.pos_ffn(enc_output)
 

@@ -3,24 +3,29 @@ import torch.nn as nn
 
 
 class FastSpeechLoss(nn.Module):
-    def __init__(self):
+    def __init__(self, train_config):
         super().__init__()
         self.mse_loss = nn.MSELoss()
         self.l1_loss = nn.L1Loss()
+        self.train_config = train_config
+
+    def normalize(self, x, mean, std):
+        return (x - mean)/std
 
     def forward(self, mel, duration_predicted, energy_predicted,
                 pitch_predicted, mel_target, duration_predictor_target,
                 energy_predictor_target, pitch_predictor_target):
         mel_loss = self.l1_loss(mel, mel_target)
-
-        # print(duration_predicted.squeeze().size(),
-        #       duration_predictor_target.squeeze().float().size())
         duration_predictor_loss = self.mse_loss(
-            duration_predicted.squeeze(),
-            duration_predictor_target.squeeze().float())
+            self.normalize(
+                duration_predicted.squeeze(),
+                self.train_config.alignment_mean, self.train_config.
+                alignment_std),
+            self.normalize(
+                duration_predictor_target.squeeze().float(),
+                self.train_config.alignment_mean, self.train_config.
+                alignment_std))
 
-        # print(energy_predicted.squeeze().size(),
-        #       energy_predictor_target.squeeze().float().size())
         energy_predictor_loss = self.mse_loss(
             energy_predicted.squeeze(),
             energy_predictor_target.squeeze().float())

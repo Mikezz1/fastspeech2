@@ -32,6 +32,18 @@ def get_stats(config):
     print(
         f"energy: min: {min :.3f}, max: {max:.3f}, mean: {mean :.3f}, std:  {std :.3f}")
 
+    alignment_vecs = []
+    for alignment_file in tqdm(os.listdir(config.alignment_path),
+                               desc='computing stats for alignments'):
+        file = np.load(os.path.join(config.alignment_path, alignment_file))
+        alignment_vecs.append(file)
+
+    alignment_vecs = np.concatenate(alignment_vecs)
+    min, max, mean, std = alignment_vecs.min(), alignment_vecs.max(
+    ), alignment_vecs.mean(), alignment_vecs.std()
+    print(
+        f"alignment: min: {min :.3f}, max: {max:.3f}, mean: {mean :.3f}, std:  {std :.3f}")
+
 
 if __name__ == '__main__':
     config = TrainConfig()
