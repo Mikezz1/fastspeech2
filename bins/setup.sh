@@ -13,10 +13,18 @@ mv train.txt ./data/
 gdown https://drive.google.com/u/0/uc?id=1WsibBTsuRg_SF2Z6L6NFRTT-NjEy1oTx
 mv waveglow_256channels_ljs_v2.pt ..vocoder/waveglow/pretrained_model/waveglow_256channels.pt
 
-gdown https://drive.google.com/u/0/uc?id=1cJKJTmYd905a-9GFoo5gKjzhKjUVj83j
-tar -xvf mel.tar.gz
-echo $(ls mels | wc -l)
-mv mels ./data
+# load pre-computed melspecs, pitch and energy vectors
+gdown https://drive.google.com/file/d/1lwes4q0G_KSw9V4kKf7YNDTJMDnwSw3t/view?usp=sharing
+tar -xvf melspecs.tar.gz
+mv melspecs ./data
+
+gdown https://drive.google.com/file/d/1GxcW3Zjp9gWeTEbaZ0mb-QfObSqHzkZ4/view?usp=sharing
+tar -xvf pitch.tar.gz
+mv pitch ./data
+
+gdown https://drive.google.com/file/d/1pgeQcBnDNZlND3lLXlIJ1bdrOaN_T7ZL/view?usp=sharing
+tar -xvf energy.tar.gz
+mv energy ./data
 
 #download alignments
 wget https://github.com/xcmyz/FastSpeech/raw/master/alignments.zip
