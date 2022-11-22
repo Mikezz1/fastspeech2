@@ -1,3 +1,4 @@
 torchaudio
 wandb
 gdown
+unidecode

@@ -69,15 +69,19 @@ class Trainer:
                     src_pos = db["src_pos"].long().to(self.train_config.device)
                     max_mel_len = db["mel_max_len"]
 
+                    energy_target = db["energy_target"].float().to(
+                        self.train_config.device)
+
                     # Forward
-                    mel_output, duration_predictor_output = self.model(
+                    mel_output, duration_predictor_output, energy_predictor_output = self.model(
                         character, src_pos, mel_pos=mel_pos,
-                        mel_max_length=max_mel_len, length_target=duration)
+                        mel_max_length=max_mel_len, length_target=duration, energy_target=energy_target)
 
                     # Calc Loss
-                    mel_loss, duration_loss = self.fastspeech_loss(
-                        mel_output, duration_predictor_output, mel_target, duration)
-                    total_loss = mel_loss + duration_loss
+                    mel_loss, duration_loss, energy_loss = self.fastspeech_loss(
+                        mel_output, duration_predictor_output, energy_predictor_output,
+                        mel_target, duration, energy_target)
+                    total_loss = mel_loss + duration_loss + energy_loss
 
                     # Backward
                     total_loss.backward()
@@ -88,10 +92,14 @@ class Trainer:
                         t_l = total_loss.detach().cpu().numpy()
                         m_l = mel_loss.detach().cpu().numpy()
                         d_l = duration_loss.detach().cpu().numpy()
+                        e_l = energy_loss.detach().cpu().numpy()
 
                         self.logger.add_scalar("duration_loss", d_l)
                         self.logger.add_scalar("mel_loss", m_l)
+                        self.logger.add_scalar("energy_loss", e_l)
                         self.logger.add_scalar("total_loss", t_l)
+                        self.logger.add_scalar(
+                            "learning_rate", self.scheduler.get_lr()[0])
                         self.logger.add_scalar(
                             "grad_norm", self.get_grad_norm())
                         self.logger.add_scalar("epoch", epoch)

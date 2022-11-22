@@ -7,6 +7,21 @@ import os
 from tqdm import tqdm
 from torch.utils.data import Dataset
 from fastspeech2.utils.utils import *
+from vocoder.audio.stft import STFT
+import torchaudio
+
+
+def calc_energy(audio):
+    """
+    Function to calculate energy using L2 norms of stft windows 
+    """
+    stft = STFT(filter_length=1024, hop_length=256, win_length=1024, )
+    magnitude, _ = stft.transform(audio)
+    return torch.linalg.norm(magnitude.squeeze(), dim=0)
+
+
+def calc_pitch(audio):
+    raise NotImplementedError
 
 
 def get_data_to_buffer(train_config):
@@ -14,6 +29,7 @@ def get_data_to_buffer(train_config):
     text = process_text(train_config.data_path,
                         num_objects=train_config.epoch_len)
 
+    wavs_dir = os.listdir(train_config.audio_ground_truth)
     start = time.perf_counter()
     for i in tqdm(range(len(text))):
 
@@ -30,8 +46,20 @@ def get_data_to_buffer(train_config):
         duration = torch.from_numpy(duration)
         mel_gt_target = torch.from_numpy(mel_gt_target)
 
+        # add pitch and energy targets
+        # path_to_audio = wavs_dir[i]
+        # waveform, _ = torchaudio.load(os.path.join(
+        #     train_config.audio_ground_truth,
+        #     path_to_audio),
+        #     normalize=True)
+        energy_target = torch.linalg.norm(
+            mel_gt_target, dim=1,  ord=2)  # calc_energy(waveform)
+        # print(f'enerrgy size : {energy_target.size()}')
+        # print(f'mel size : {mel_gt_target.shape}')
+        print(energy_target.min(), energy_target.max())
         buffer.append({"text": character, "duration": duration,
-                       "mel_target": mel_gt_target})
+                       "mel_target": mel_gt_target,
+                       "energy_target": energy_target})
 
     end = time.perf_counter()
     print("cost {:.2f}s to load all data into buffer.".format(end-start))
@@ -55,6 +83,7 @@ def reprocess_tensor(batch, cut_list):
     texts = [batch[ind]["text"] for ind in cut_list]
     mel_targets = [batch[ind]["mel_target"] for ind in cut_list]
     durations = [batch[ind]["duration"] for ind in cut_list]
+    energy_targets = [batch[ind]["energy_target"] for ind in cut_list]
 
     length_text = np.array([])
     for text in texts:
@@ -81,6 +110,7 @@ def reprocess_tensor(batch, cut_list):
                 'constant'))
     mel_pos = torch.from_numpy(np.array(mel_pos))
 
+    energy_targets = pad_1D_tensor(energy_targets)
     texts = pad_1D_tensor(texts)
     durations = pad_1D_tensor(durations)
     mel_targets = pad_2D_tensor(mel_targets)
@@ -90,6 +120,7 @@ def reprocess_tensor(batch, cut_list):
            "duration": durations,
            "mel_pos": mel_pos,
            "src_pos": src_pos,
-           "mel_max_len": max_mel_len}
+           "mel_max_len": max_mel_len,
+           "energy_target": energy_targets}
 
     return out

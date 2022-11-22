@@ -8,7 +8,7 @@ class LengthRegulator(nn.Module):
 
     def __init__(self, model_config, device):
         super(LengthRegulator, self).__init__()
-        self.duration_predictor = DurationPredictor(model_config)
+        self.duration_predictor = VarianceAdaptor(model_config)
         self.device = device
 
     def LR(self, x, duration_predictor_output, mel_max_length=None):
@@ -42,11 +42,50 @@ class LengthRegulator(nn.Module):
             return output, mel_pos
 
 
-class DurationPredictor(nn.Module):
+class EnergyAdaptor(nn.Module):
+    """ Energy adaptor
+    Add quantization
+    """
+
+    def __init__(self,  model_config, device):
+        super(EnergyAdaptor, self).__init__()
+        self.energy_predictor = VarianceAdaptor(model_config)
+        self.device = device
+        self.energy_embedding = nn.Embedding(256, model_config.encoder_dim)
+        self.energy_bins = nn.Parameter(
+            torch.exp(
+                torch.linspace(10, 80, 256 - 1)
+            ),
+            requires_grad=False,
+        )
+
+    def get_energy_embedding(self, x):
+        energy_predictions = self.energy_predictor(x)
+        embedding = self.energy_embedding(
+            torch.bucketize(energy_predictions, self.energy_bins))
+        return energy_predictions, embedding
+
+    def forward(self, x, target=None):
+        energy_predictions = self.energy_predictor(x)
+        if target is not None:
+            embedding = self.energy_embedding(
+                torch.bucketize(target, self.energy_bins))
+            print(target)
+            print(energy_predictions)
+            x = x+embedding
+            return x, energy_predictions
+        else:
+            embedding = self.energy_embedding(
+                torch.bucketize(energy_predictions, self.energy_bins))
+            x += embedding
+            return x
+
+
+class VarianceAdaptor(nn.Module):
     """ Duration Predictor """
 
     def __init__(self, model_config):
-        super(DurationPredictor, self).__init__()
+        super(VarianceAdaptor, self).__init__()
 
         self.input_size = model_config.encoder_dim
         self.filter_size = model_config.duration_predictor_filter_size

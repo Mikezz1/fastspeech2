@@ -45,6 +45,7 @@ class TrainConfig:
     checkpoint_path = "./checkpoints"
     logger_path = "./logger"
     mel_ground_truth = "./data/mels"
+    audio_ground_truth = "./data/LJSpeech-1.1/wavs"
     alignment_path = "./data/alignments"
     data_path = './data/train.txt'
 
@@ -54,9 +55,9 @@ class TrainConfig:
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-    batch_size = 100
-    epoch_len = -1
-    epochs = 250
+    batch_size = 4
+    epoch_len = 4
+    epochs = 25
     n_warm_up_step = 3000
 
     learning_rate = 1e-3
@@ -64,8 +65,8 @@ class TrainConfig:
     grad_clip_thresh = 1.0
     decay_step = [500000, 1000000, 2000000]
 
-    save_step = 20
-    log_step = 50
+    save_step = 1
+    log_step = 5
     clear_Time = 20
 
-    batch_expand_size = 200
+    batch_expand_size = 1

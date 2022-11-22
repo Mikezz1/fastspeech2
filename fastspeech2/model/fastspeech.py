@@ -13,6 +13,8 @@ class FastSpeech(nn.Module):
         self.encoder = Encoder(model_config)
         self.length_regulator = LengthRegulator(
             model_config, train_config.device)
+
+        self.energy_adaptor = EnergyAdaptor(model_config, train_config.device)
         self.decoder = Decoder(model_config)
 
         self.mel_linear = nn.Linear(
@@ -26,18 +28,32 @@ class FastSpeech(nn.Module):
 
     def forward(
             self, src_seq, src_pos, mel_pos=None, mel_max_length=None,
-            length_target=None, alpha=1.0):
+            length_target=None, energy_target=None, alpha=1.0):
+        # print(src_seq.size())
         x, non_pad_mask = self.encoder(src_seq, src_pos)
+        # print(x.size())
         if self.training:
+            # print(energy_predictor_output.size())
+            # print(x.size())
             output, duration_predictor_output = self.length_regulator(
                 x, alpha, length_target, mel_max_length)
+            # print(output.size())
+            output, energy_predictor_output = self.energy_adaptor(
+                output, energy_target)
+            # print(output.size())
+            # print(duration_predictor_output.size())
+
             output = self.decoder(output, mel_pos)
+            # print(output.size())
             output = self.mask_tensor(output, mel_pos, mel_max_length)
+            # print(output.size())
             output = self.mel_linear(output)
-            return output, duration_predictor_output
+            # print(output.size())
+            return output, duration_predictor_output, energy_predictor_output
         else:
 
             output, mel_pos = self.length_regulator(x, alpha)
+            output = self.energy_adaptor(x)
             output = self.decoder(output, mel_pos)
             output = self.mel_linear(output)
             return output
