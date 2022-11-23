@@ -77,14 +77,14 @@ class Trainer:
 
                     # Forward
                     mel_output, duration_predictor_output,\
-                        energy_predictor_output, pitch_predictor_output = self.model(
+                        energy_predictor_output, pitch_predictor_output, mel_mask, src_mask = self.model(
                             character, src_pos, mel_pos=mel_pos,
-                            mel_max_length=max_mel_len, length_target=duration, energy_target=energy_target)
+                            mel_max_length=max_mel_len, length_target=duration, energy_target=energy_target, pitch_target=pitch_target)
 
                     # Calc Loss
                     mel_loss, duration_loss, energy_loss, pitch_loss = self.fastspeech_loss(
                         mel_output, duration_predictor_output, energy_predictor_output, pitch_predictor_output,
-                        mel_target, duration, energy_target, pitch_target)
+                        mel_target, duration, energy_target, pitch_target, mel_mask, src_mask)
                     total_loss = mel_loss + duration_loss + energy_loss + pitch_loss
 
                     # Backward

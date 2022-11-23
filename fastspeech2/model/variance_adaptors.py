@@ -47,23 +47,21 @@ class EnergyAdaptor(nn.Module):
     Add quantization
     """
 
-    def __init__(self,  model_config, device):
+    def __init__(self,  model_config, train_config, device):
         super(EnergyAdaptor, self).__init__()
         self.energy_predictor = VarianceAdaptor(model_config)
         self.device = device
         self.energy_embedding = nn.Embedding(256, model_config.encoder_dim)
+        bin_min = (
+            train_config.energy_min - train_config.energy_mean) / train_config.energy_std
+        bin_max = (
+            train_config.energy_max - train_config.energy_mean) / train_config.energy_std
         self.energy_bins = nn.Parameter(
             torch.exp(
-                torch.linspace(0, 1, 256 - 1)
+                torch.linspace(bin_min, bin_max, 256 - 1)
             ),
             requires_grad=False,
         )
-
-    def get_energy_embedding(self, x):
-        energy_predictions = self.energy_predictor(x)
-        embedding = self.energy_embedding(
-            torch.bucketize(energy_predictions, self.energy_bins))
-        return energy_predictions, embedding
 
     def forward(self, x, target=None):
         energy_predictions = self.energy_predictor(x)
@@ -84,23 +82,21 @@ class PitchAdaptor(nn.Module):
     Add quantization
     """
 
-    def __init__(self,  model_config, device):
+    def __init__(self,  model_config, train_config, device):
         super(PitchAdaptor, self).__init__()
         self.pitch_predictor = VarianceAdaptor(model_config)
         self.device = device
         self.pitch_embedding = nn.Embedding(256, model_config.encoder_dim)
+        bin_min = (
+            train_config.pitch_min - train_config.pitch_mean) / train_config.pitch_std
+        bin_max = (
+            train_config.pitch_max - train_config.pitch_mean) / train_config.pitch_std
         self.pitch_bins = nn.Parameter(
             torch.exp(
-                torch.linspace(0, 1, 256 - 1)
+                torch.linspace(bin_min, bin_max, 256 - 1)
             ),
             requires_grad=False,
         )
-
-    def get_pitch_embedding(self, x):
-        pitch_predictions = self.energy_predictor(x)
-        embedding = self.energy_embedding(
-            torch.bucketize(pitch_predictions, self.pitch_bins))
-        return pitch_predictions, embedding
 
     def forward(self, x, target=None):
         pitch_predictions = self.pitch_predictor(x)
