@@ -88,7 +88,7 @@ class MultiHeadAttention(nn.Module):
 
         self.attention = ScaledDotProductAttention(
             temperature=d_k**0.5)
-        self.layer_norm = nn.LayerNorm(d_model)
+        #self.layer_norm = nn.LayerNorm(d_model)
 
         self.fc = nn.Linear(n_head * d_v, d_model)
         nn.init.xavier_normal_(self.fc.weight)
@@ -136,7 +136,7 @@ class MultiHeadAttention(nn.Module):
             sz_b, len_q, -1)  # b x lq x (n*dv)
 
         output = self.dropout(self.fc(output))
-        output = self.layer_norm(output + residual)
+        #output = self.layer_norm(output + residual)
 
         return output, attn
 
@@ -164,11 +164,13 @@ class PositionwiseFeedForward(nn.Module):
 
     def forward(self, x):
         residual = x
+
+        output = self.layer_norm(x)
         output = x.transpose(1, 2)
         output = self.w_2(F.relu(self.w_1(output)))
         output = output.transpose(1, 2)
         output = self.dropout(output)
-        output = self.layer_norm(output + residual)
+        output = output + residual
 
         return output
 
@@ -196,6 +198,7 @@ class FFTBlock(torch.nn.Module):
     def forward(self, enc_input, non_pad_mask=None, slf_attn_mask=None):
 
         residual = enc_input
+        enc_input = self.layer_norm(enc_input)
         enc_output, enc_slf_attn = self.slf_attn(
             enc_input, enc_input, enc_input, mask=slf_attn_mask)
 
@@ -203,8 +206,7 @@ class FFTBlock(torch.nn.Module):
             enc_output *= non_pad_mask
         # layer norm + residual
 
-        enc_output = self.layer_norm(enc_output + residual)
-
+        enc_output = enc_output + residual
         enc_output = self.pos_ffn(enc_output)
 
         if non_pad_mask is not None:

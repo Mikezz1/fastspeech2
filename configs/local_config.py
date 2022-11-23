@@ -12,15 +12,15 @@ class FastSpeechConfig:
     vocab_size = 300
     max_seq_len = 3000
 
-    encoder_dim = 256
+    encoder_dim = 128
     encoder_n_layer = 2
-    encoder_head = 4
-    encoder_conv1d_filter_size = 1024
+    encoder_head = 2
+    encoder_conv1d_filter_size = 256
 
-    decoder_dim = 256
+    decoder_dim = 128
     decoder_n_layer = 2
-    decoder_head = 4
-    decoder_conv1d_filter_size = 1024
+    decoder_head = 2
+    decoder_conv1d_filter_size = 256
 
     fft_conv1d_kernel = (9, 1)
     fft_conv1d_padding = (4, 0)
@@ -59,9 +59,9 @@ class TrainConfig:
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-    batch_size = 48
-    epoch_len = -1
-    epochs = 150
+    batch_size = 4
+    epoch_len = 8
+    epochs = 20
     n_warm_up_step = 3000
 
     learning_rate = 1e-3
@@ -69,11 +69,11 @@ class TrainConfig:
     grad_clip_thresh = 1.0
     decay_step = [500000, 1000000, 2000000]
 
-    save_step = 200
-    log_step = 80
+    save_step = 4
+    log_step = 2
     clear_Time = 20
 
-    batch_expand_size = 48
+    batch_expand_size = 1
 
     hop_length = 256
     win_length = 1024
@@ -92,6 +92,6 @@ class TrainConfig:
     pitch_std = 111.120
 
     alignment_min = 0
-    alignment_max = 4.304  # log
+    alignment_max = 4.304  # log(74.000)
     alignment_mean = 5.669
     alignment_std = 4.940

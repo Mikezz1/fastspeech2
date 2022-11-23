@@ -43,6 +43,7 @@ def get_stats(config):
     ), alignment_vecs.mean(), alignment_vecs.std()
     print(
         f"alignment: min: {min :.3f}, max: {max:.3f}, mean: {mean :.3f}, std:  {std :.3f}")
+    print(f"alignment == zero phonems frac: {np.mean(alignment_vecs == 0)}")
 
 
 if __name__ == '__main__':

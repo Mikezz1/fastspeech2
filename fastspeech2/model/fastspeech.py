@@ -34,11 +34,15 @@ class FastSpeech(nn.Module):
         if self.training:
             output, duration_predictor_output = self.length_regulator(
                 x, alpha, length_target, mel_max_length)
-            output, energy_predictor_output = self.energy_adaptor(
+
+            pitch_embedding, pitch_predictor_output = self.pitch_adaptor(
                 output, energy_target)
 
-            output, pitch_predictor_output = self.pitch_adaptor(
+            energy_embedding, energy_predictor_output = self.energy_adaptor(
                 output, energy_target)
+
+            output = output + pitch_embedding
+            output = output + energy_embedding
 
             output = self.decoder(output, mel_pos)
             output = self.mask_tensor(output, mel_pos, mel_max_length)

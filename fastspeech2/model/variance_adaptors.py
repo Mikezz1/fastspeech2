@@ -70,13 +70,13 @@ class EnergyAdaptor(nn.Module):
         if target is not None:
             embedding = self.energy_embedding(
                 torch.bucketize(target, self.energy_bins))
-            x = x+embedding
-            return x, energy_predictions
+            #x = x+embedding
+            return embedding, energy_predictions
         else:
             embedding = self.energy_embedding(
                 torch.bucketize(energy_predictions, self.energy_bins))
-            x += embedding
-            return x
+            #x += embedding
+            return embedding
 
 
 class PitchAdaptor(nn.Module):
@@ -107,13 +107,13 @@ class PitchAdaptor(nn.Module):
         if target is not None:
             embedding = self.pitch_embedding(
                 torch.bucketize(target, self.pitch_bins))
-            x = x+embedding
-            return x, pitch_predictions
+            #x = x+embedding
+            return embedding, pitch_predictions
         else:
             embedding = self.pitch_embedding(
                 torch.bucketize(pitch_predictions, self.pitch_bins))
-            x += embedding
-            return x
+            #x += embedding
+            return embedding
 
 
 class VarianceAdaptor(nn.Module):
