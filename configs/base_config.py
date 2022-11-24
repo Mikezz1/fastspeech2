@@ -81,6 +81,8 @@ class TrainConfig:
     sampling_rate = 22_500
     n_mel_channels = 80
 
+    normalize_adapters = False
+
     energy_mean = 21.832
     energy_min = 0.018
     energy_max = 314.962

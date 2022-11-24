@@ -50,10 +50,11 @@ def get_data_to_buffer(train_config):
         pitch_target = torch.from_numpy(pitch_target)
 
         # transform targets
-        energy_target = (
-            energy_target - train_config.energy_mean) / train_config.energy_std
-        pitch_target = (
-            pitch_target - train_config.pitch_mean) / train_config.pitch_std
+        if train_config.normalize_adapters:
+            energy_target = (
+                energy_target - train_config.energy_mean) / train_config.energy_std
+            pitch_target = (
+                pitch_target - train_config.pitch_mean) / train_config.pitch_std
 
         buffer.append({"text": character, "duration": duration,
                        "mel_target": mel_gt_target,
