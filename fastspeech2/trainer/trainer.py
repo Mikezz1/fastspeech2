@@ -76,6 +76,7 @@ class Trainer:
                         self.train_config.device)
 
                     # Forward
+
                     mel_output, duration_predictor_output,\
                         energy_predictor_output, pitch_predictor_output, mel_mask, src_mask = self.model(
                             character, src_pos, mel_pos=mel_pos,
@@ -91,6 +92,8 @@ class Trainer:
                     total_loss.backward()
 
                     # Logger
+                    # print(mel_mask.size())
+                    # print(mel_output.size())
 
                     if current_step % self.train_config.log_step == 0:
                         t_l = total_loss.detach().cpu().numpy()
@@ -110,14 +113,16 @@ class Trainer:
                             "grad_norm", self.get_grad_norm())
                         self.logger.add_scalar("epoch", epoch)
                         self._log_spectrogram(
-                            mel_output[0].T, caption='predicted spectrogram')
+                            mel_output[0][mel_mask[0],
+                                          :].T,
+                            caption='predicted spectrogram')
                         self._log_spectrogram(
-                            mel_target[0].T, caption='gt spectrogram')
+                            mel_target[0][mel_mask[0], :].T, caption='gt spectrogram')
                         self._log_audio(
-                            get_inv_mel_spec(mel_output[0]),
+                            get_inv_mel_spec(mel_output[0][mel_mask[0], :]),
                             caption='predicted audio (istft)')
                         self._log_audio(
-                            get_inv_mel_spec(mel_target[0]),
+                            get_inv_mel_spec(mel_target[0][mel_mask[0], :]),
                             caption='gt audio (istft)')
 
                     # Clipping gradients to avoid gradient explosion
