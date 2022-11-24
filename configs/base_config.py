@@ -10,7 +10,7 @@ class MelSpectrogramConfig:
 @dataclass
 class FastSpeechConfig:
     vocab_size = 300
-    max_seq_len = 3000
+    max_seq_len = 1000
 
     encoder_dim = 256
     encoder_n_layer = 2
@@ -25,8 +25,9 @@ class FastSpeechConfig:
     fft_conv1d_kernel = (9, 1)
     fft_conv1d_padding = (4, 0)
 
-    duration_predictor_filter_size = 256
-    duration_predictor_kernel_size = 3
+    variance_predictor_filter_size = 256
+    variance_predictor_kernel_size = 3
+    variance_predictor_dropout = 0.5
     dropout = 0.1
 
     PAD = 0
@@ -62,18 +63,16 @@ class TrainConfig:
     batch_size = 48
     epoch_len = -1
     epochs = 150
-    n_warm_up_step = 3000
+    n_warm_up_step = 4000
 
     learning_rate = 1e-3
     weight_decay = 1e-6
     grad_clip_thresh = 1.0
-    decay_step = [500000, 1000000, 2000000]
 
-    save_step = 200
+    save_step = 500
     log_step = 80
-    clear_Time = 20
 
-    batch_expand_size = 48
+    batch_expand_size = 1
 
     hop_length = 256
     win_length = 1024
@@ -81,19 +80,20 @@ class TrainConfig:
     sampling_rate = 22_500
     n_mel_channels = 80
 
-    normalize_adapters = False
+    normalize_adapters = True
 
     energy_mean = 21.832
     energy_min = 0.018
     energy_max = 314.962
     energy_std = 19.784
 
-    pitch_mean = 129.851
-    pitch_min = 0.000
-    pitch_max = 788.677
-    pitch_std = 111.120
+    pitch_non_zero_mean = 210.759
+    pitch_mean = 5.322
+    pitch_min = 4.263
+    pitch_max = 6.670
+    pitch_std = 0.248
 
     alignment_min = 0
-    alignment_max = 4.304  # log
+    alignment_max = 74.000  # log
     alignment_mean = 5.669
     alignment_std = 4.940

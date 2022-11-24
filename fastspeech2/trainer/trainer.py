@@ -91,10 +91,6 @@ class Trainer:
                     # Backward
                     total_loss.backward()
 
-                    # Logger
-                    # print(mel_mask.size())
-                    # print(mel_output.size())
-
                     if current_step % self.train_config.log_step == 0:
                         t_l = total_loss.detach().cpu().numpy()
                         m_l = mel_loss.detach().cpu().numpy()

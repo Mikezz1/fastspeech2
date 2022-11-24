@@ -65,13 +65,10 @@ class FastSpeech(nn.Module):
             energy_embedding, energy_predictor_output = self.energy_adaptor(
                 output, energy_target, e_param)
 
-            # print(output.size())
-            # print(pitch_embedding.size())
             output = output + pitch_embedding + energy_embedding
 
             output = self.decoder(output, mel_pos)
 
-            ########
             output, mel_mask = self.mask_tensor(
                 output, mel_pos, mel_max_length)
             output = self.mel_linear(output)

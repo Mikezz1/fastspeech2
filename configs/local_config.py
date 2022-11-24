@@ -25,8 +25,9 @@ class FastSpeechConfig:
     fft_conv1d_kernel = (9, 1)
     fft_conv1d_padding = (4, 0)
 
-    duration_predictor_filter_size = 256
-    duration_predictor_kernel_size = 3
+    variance_predictor_filter_size = 256
+    variance_predictor_kernel_size = 3
+    variance_predictor_dropout = 0.5
     dropout = 0.1
 
     PAD = 0
@@ -81,19 +82,20 @@ class TrainConfig:
     sampling_rate = 22_500
     n_mel_channels = 80
 
-    normalize_adapters = False
+    normalize_adapters = True
 
     energy_mean = 21.832
     energy_min = 0.018
     energy_max = 314.962
     energy_std = 19.784
 
-    pitch_mean = 129.851
-    pitch_min = 0.000
-    pitch_max = 788.677
-    pitch_std = 111.120
+    pitch_non_zero_mean = 210.759
+    pitch_mean = 5.322
+    pitch_min = 4.263
+    pitch_max = 6.670
+    pitch_std = 0.248
 
     alignment_min = 0
-    alignment_max = 4.304  # log(74.000)
+    alignment_max = 74.000  # log
     alignment_mean = 5.669
     alignment_std = 4.940

@@ -13,3 +13,4 @@ wandb/
 checkpoints/*.tar
 __*/
 .DS_Store
+*.ipynb

@@ -3,6 +3,7 @@ import os
 from tqdm import tqdm
 import numpy as np
 from configs.base_config import *
+import pandas as pd
 
 
 def get_stats(config):
@@ -14,10 +15,16 @@ def get_stats(config):
         pitch_vecs.append(file)
 
     pitch_vecs = np.concatenate(pitch_vecs)
+    non_zero_mean = pitch_vecs[pitch_vecs > 0].mean()
+    pitch_vecs = np.log(pd.Series(pitch_vecs)
+                        .replace(0, np.nan).interpolate()
+                        .fillna(non_zero_mean)
+                        .values)
+
     min, max, mean, std = pitch_vecs.min(), pitch_vecs.max(
     ), pitch_vecs.mean(), pitch_vecs.std()
     print(
-        f"pitch: min: {min :.3f}, max: {max:.3f}, mean: {mean :.3f}, std:  {std :.3f}")
+        f"log pitch: min: {min :.3f}, max: {max:.3f}, mean: {mean :.3f}, std:  {std :.3f}, non_zero_mean: {non_zero_mean}")
 
     energy_vecs = []
     for energy_file in tqdm(

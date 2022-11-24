@@ -42,37 +42,6 @@ class LengthRegulator(nn.Module):
             return output, mel_pos
 
 
-# class EnergyAdaptor(nn.Module):
-#     """ Energy adaptor
-#     Add quantization
-#     """
-
-#     def __init__(self,  model_config, train_config, device):
-#         super(EnergyAdaptor, self).__init__()
-#         self.energy_predictor = VarianceAdaptor(model_config)
-#         self.device = device
-#         self.energy_embedding = nn.Embedding(256, model_config.encoder_dim)
-#         bin_min = (
-#             train_config.energy_min - train_config.energy_mean) / train_config.energy_std
-#         bin_max = (
-#             train_config.energy_max - train_config.energy_mean) / train_config.energy_std
-#         self.energy_bins = nn.Parameter(
-#             torch.linspace(bin_min, bin_max, 256 - 1),
-#             requires_grad=False,
-#         )
-
-#     def forward(self, x, target=None, e_param=1):
-#         energy_predictions = self.energy_predictor(x)
-#         if target is not None:
-#             embedding = self.energy_embedding(
-#                 torch.bucketize(target, self.energy_bins))
-#             return embedding, energy_predictions
-#         else:
-#             embedding = self.energy_embedding(torch.bucketize(
-#                 e_param * energy_predictions, self.energy_bins))
-#             return embedding
-
-
 class VarianceAdaptor(nn.Module):
 
     def __init__(self,  model_config, train_config, device, bin_min, bin_max):
@@ -80,10 +49,6 @@ class VarianceAdaptor(nn.Module):
         self.variance_predictor = VariancePredictor(model_config)
         self.device = device
         self.embedding = nn.Embedding(256, model_config.encoder_dim)
-        # bin_min = (
-        #     train_config.pitch_min - train_config.pitch_mean) / train_config.pitch_std
-        # bin_max = (
-        #     train_config.pitch_max - train_config.pitch_mean) / train_config.pitch_std
         self.bins = nn.Parameter(
             torch.linspace(bin_min, bin_max, 256),
             requires_grad=False,
@@ -107,10 +72,10 @@ class VariancePredictor(nn.Module):
         super(VariancePredictor, self).__init__()
 
         self.input_size = model_config.encoder_dim
-        self.filter_size = model_config.duration_predictor_filter_size
-        self.kernel = model_config.duration_predictor_kernel_size
-        self.conv_output_size = model_config.duration_predictor_filter_size
-        self.dropout = model_config.dropout
+        self.filter_size = model_config.variance_predictor_filter_size
+        self.kernel = model_config.variance_predictor_kernel_size
+        self.conv_output_size = model_config.variance_predictor_filter_size
+        self.dropout = model_config.variance_predictor_dropout
 
         self.conv_net = nn.Sequential(
             Transpose(-1, -2),
