@@ -10,17 +10,17 @@ class MelSpectrogramConfig:
 @dataclass
 class FastSpeechConfig:
     vocab_size = 300
-    max_seq_len = 3000
+    max_seq_len = 1000
 
-    encoder_dim = 128
+    encoder_dim = 256
     encoder_n_layer = 2
-    encoder_head = 2
-    encoder_conv1d_filter_size = 256
+    encoder_head = 4
+    encoder_conv1d_filter_size = 1024
 
-    decoder_dim = 128
+    decoder_dim = 256
     decoder_n_layer = 2
-    decoder_head = 2
-    decoder_conv1d_filter_size = 256
+    decoder_head = 4
+    decoder_conv1d_filter_size = 1024
 
     fft_conv1d_kernel = (9, 1)
     fft_conv1d_padding = (4, 0)
@@ -60,9 +60,9 @@ class TrainConfig:
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-    batch_size = 4
-    epoch_len = 8
-    epochs = 20
+    batch_size = 1
+    epoch_len = 1
+    epochs = 50
     n_warm_up_step = 3000
 
     learning_rate = 1e-3
@@ -71,7 +71,7 @@ class TrainConfig:
     decay_step = [500000, 1000000, 2000000]
 
     save_step = 4
-    log_step = 2
+    log_step = 1
     clear_Time = 20
 
     batch_expand_size = 1

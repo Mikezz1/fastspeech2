@@ -51,7 +51,7 @@ class FastSpeech(nn.Module):
     def forward(
             self, src_seq, src_pos, mel_pos=None, mel_max_length=None,
             length_target=None, energy_target=None, pitch_target=None,
-            alpha=1.0, e_param=1.0, p_param=1.0):
+            alpha=1.0, e_param=1.0, p_param=1.0, debug=False):
         x, src_mask = self.encoder(src_seq, src_pos)
         src_mask = src_mask.bool().squeeze()
 
@@ -59,11 +59,14 @@ class FastSpeech(nn.Module):
             output, duration_predictor_output = self.length_regulator(
                 x, alpha, length_target, mel_max_length)
 
+            if debug:
+                hidden = output.detach()
+
             pitch_embedding, pitch_predictor_output = self.pitch_adaptor(
-                output, pitch_target, p_param)
+                output, pitch_target)
 
             energy_embedding, energy_predictor_output = self.energy_adaptor(
-                output, energy_target, e_param)
+                output, energy_target)
 
             output = output + pitch_embedding + energy_embedding
 
@@ -72,16 +75,28 @@ class FastSpeech(nn.Module):
             output, mel_mask = self.mask_tensor(
                 output, mel_pos, mel_max_length)
             output = self.mel_linear(output)
+            if debug:
+                return output, duration_predictor_output, energy_predictor_output, pitch_predictor_output, mel_mask, src_mask, pitch_embedding, energy_embedding, hidden
             return output, duration_predictor_output, energy_predictor_output, pitch_predictor_output, mel_mask, src_mask
         else:
-
-            output, mel_pos = self.length_regulator(x, alpha)
-            energy_embedding = self.energy_adaptor(output)
-            pitch_embedding = self.pitch_adaptor(output)
-            output = output + pitch_embedding
-            output = output + energy_embedding
+            output, mel_pos = self.length_regulator(
+                x, alpha)
+            if debug:
+                hidden = output.detach()
+            energy_embedding = self.energy_adaptor(
+                output, control_param=e_param)
+            pitch_embedding = self.pitch_adaptor(
+                output, control_param=p_param)
+            # print(
+            #     output.size(),
+            #     pitch_embedding.size(),
+            #     energy_embedding.size(),
+            #     x.size())
+            output = output + pitch_embedding + energy_embedding
             output = self.decoder(output, mel_pos)
             output = self.mel_linear(output)
+            if debug:
+                return output, pitch_embedding, energy_embedding, hidden
             return output
 
 

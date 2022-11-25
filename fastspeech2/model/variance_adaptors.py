@@ -21,6 +21,9 @@ class LengthRegulator(nn.Module):
                                      duration_predictor_output.cpu().numpy())
         alignment = torch.from_numpy(alignment).to(x.device)
 
+        # print(alignment.size())
+        # print(x.size())
+        # x = x.permute(0, 2, 1)
         output = alignment @ x
         if mel_max_length:
             output = F.pad(
@@ -50,13 +53,15 @@ class VarianceAdaptor(nn.Module):
         self.device = device
         self.embedding = nn.Embedding(256, model_config.encoder_dim)
         self.bins = nn.Parameter(
-            torch.linspace(bin_min, bin_max, 256),
+            torch.linspace(bin_min, bin_max, 255),
             requires_grad=False,
         )
 
     def forward(self, x, target=None, control_param=1):
         predictions = self.variance_predictor(x)
         if target is not None:
+            # print(f'pitch target  size: {target.size()}')
+            # print(f'pitch pred  size: {predictions.size()}')
             embedding = self.embedding(
                 torch.bucketize(target, self.bins))
             return embedding, predictions

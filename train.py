@@ -52,6 +52,12 @@ if __name__ == '__main__':
 
     # Load model
     model = FastSpeech(model_config, mel_config, train_config)
+
+    model.load_state_dict(
+        torch.load(
+            './checkpoints/checkpoint_51500.pth.tar',
+            map_location=train_config.device)['model'])
+
     model = model.to(train_config.device)
 
     # Specify other stuff

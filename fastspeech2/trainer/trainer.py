@@ -7,6 +7,8 @@ import os
 from tqdm import tqdm
 from fastspeech2.loss.loss import *
 from fastspeech2.logger.utils import *
+from fastspeech2.utils.text import text_to_sequence, sequence_to_text
+import numpy as np
 
 
 class Trainer:
@@ -46,6 +48,31 @@ class Trainer:
         )
         return total_norm.item()
 
+    def inference(
+            self, model, text, train_config, alpha=1, energy=1, pitch=1,
+            debug=True):
+        model.eval()
+        with torch.no_grad():
+            char = text_to_sequence(text, train_config.text_cleaners)
+            text = np.array(char)
+            text = np.stack([text])
+            src_pos = np.array([i+1 for i in range(text.shape[1])])
+            src_pos = np.stack([src_pos])
+            sequence = torch.from_numpy(text).long().to(train_config.device)
+            src_pos = torch.from_numpy(src_pos).long().to(train_config.device)
+            mel, pitch_embedding, energy_embedding, hidden = model.forward(
+                sequence,
+                src_pos,
+                alpha=alpha,
+                e_param=energy,
+                p_param=pitch,
+                debug=True)
+
+            # print(mel)
+            # print(mel.size())
+            model.train()
+        return mel, pitch_embedding, energy_embedding, hidden
+
     def train(self):
         current_step = 0
         tqdm_bar = tqdm(total=self.train_config.epochs * len(self.training_loader)
@@ -76,11 +103,29 @@ class Trainer:
                         self.train_config.device)
 
                     # Forward
+                    debug = True
+                    if debug:
+                        mel_output, duration_predictor_output,\
+                            energy_predictor_output, pitch_predictor_output, mel_mask, src_mask, pitch_embedding, energy_embedding, hidden = self.model(
+                                character, src_pos, mel_pos=mel_pos,
+                                mel_max_length=max_mel_len, length_target=duration, energy_target=energy_target, pitch_target=pitch_target, debug=debug)
+                    else:
+                        mel_output, duration_predictor_output,\
+                            energy_predictor_output, pitch_predictor_output, mel_mask, src_mask = self.model(
+                                character, src_pos, mel_pos=mel_pos,
+                                mel_max_length=max_mel_len, length_target=duration, energy_target=energy_target, pitch_target=pitch_target)
 
-                    mel_output, duration_predictor_output,\
-                        energy_predictor_output, pitch_predictor_output, mel_mask, src_mask = self.model(
-                            character, src_pos, mel_pos=mel_pos,
-                            mel_max_length=max_mel_len, length_target=duration, energy_target=energy_target, pitch_target=pitch_target)
+                    # print(character)
+                    # print('*'*10)
+                    # print(max_mel_len)
+                    # print('*'*10)
+                    # print(duration)
+                    # print('*'*10)
+                    # print(energy_target)
+                    # print('*'*10)
+                    # print(pitch_target)
+                    # print('*'*10)
+                    # print(mel_pos)
 
                     # Calc Loss
                     mel_loss, duration_loss, energy_loss, pitch_loss = self.fastspeech_loss(
@@ -120,6 +165,47 @@ class Trainer:
                         self._log_audio(
                             get_inv_mel_spec(mel_target[0][mel_mask[0], :]),
                             caption='gt audio (istft)')
+
+                        # if current_step > 20:
+
+                        if debug:
+
+                            sample_text = 'Printing, in the only sense with which we are at present concerned, differs from most if not from all the arts and crafts represented in the Exhibition'
+
+                            sample_mel, pitch_embedding_sample, energy_embedding_sample, sample_hidden = self.inference(
+                                self.model, sample_text, self.train_config, debug=debug)
+                            # print(
+                            #     pitch_embedding.size(),
+                            #     pitch_embedding_sample.size())
+                            # print(
+                            #     energy_embedding.size(),
+                            #     energy_embedding_sample.size())
+                            self._log_audio(
+                                get_inv_mel_spec(sample_mel[0]),
+                                caption='sample audio (istft)')
+                            self._log_spectrogram(
+                                sample_mel[0].T, caption='sample spectrogram')
+
+                            # self._log_spectrogram(
+                            #     pitch_embedding_sample[0],
+                            #     caption='pitch_embedding_inference')
+                            # self._log_spectrogram(
+                            #     pitch_embedding_sample[0],
+                            #     caption='pitch_embedding_train')
+                            # self._log_spectrogram(
+                            #     energy_embedding_sample[0],
+                            #     caption='energy_embedding_inference')
+                            # self._log_spectrogram(
+                            #     energy_embedding[0],
+                            #     caption='energy_embedding_train')
+
+                            # self._log_spectrogram(
+                            #     hidden[0],
+                            #     caption='hidden_train')
+
+                            # self._log_spectrogram(
+                            #     sample_hidden[0],
+                            #     caption='hidden_inference')
 
                     # Clipping gradients to avoid gradient explosion
                     nn.utils.clip_grad_norm_(
