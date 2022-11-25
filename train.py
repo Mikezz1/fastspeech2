@@ -24,6 +24,10 @@ def parse_args():
                         help="config file name (without .py)"
                         )
 
+    parser.add_argument(
+        "--resume", default='', type=str,
+        help="path to checkpoint (or empty string if  train from scratch)")
+
     args = parser.parse_args()
     return args
 
@@ -53,10 +57,11 @@ if __name__ == '__main__':
     # Load model
     model = FastSpeech(model_config, mel_config, train_config)
 
-    model.load_state_dict(
-        torch.load(
-            './checkpoints/checkpoint_51500.pth.tar',
-            map_location=train_config.device)['model'])
+    if len(args.resume) > 0:
+        model.load_state_dict(
+            torch.load(
+                args.resume,  # './checkpoints/checkpoint_51500.pth.tar'
+                map_location=train_config.device)['model'])
 
     model = model.to(train_config.device)
 

@@ -16,13 +16,19 @@ def get_stats(config):
 
     pitch_vecs = np.concatenate(pitch_vecs)
     non_zero_mean = pitch_vecs[pitch_vecs > 0].mean()
-    pitch_vecs = np.log(pd.Series(pitch_vecs)
-                        .replace(0, np.nan).interpolate()
-                        .fillna(non_zero_mean)
-                        .values)
+    pitch_vecs = pd.Series(pitch_vecs)\
+        .replace(0, np.nan).interpolate()\
+        .fillna(non_zero_mean)\
+        .values
+    log_pitch_vecs = np.log(pitch_vecs)
 
     min, max, mean, std = pitch_vecs.min(), pitch_vecs.max(
     ), pitch_vecs.mean(), pitch_vecs.std()
+    print(
+        f"pitch: min: {min :.3f}, max: {max:.3f}, mean: {mean :.3f}, std:  {std :.3f}, non_zero_mean: {non_zero_mean}")
+
+    min, max, mean, std = log_pitch_vecs.min(), log_pitch_vecs.max(
+    ), log_pitch_vecs.mean(), log_pitch_vecs.std()
     print(
         f"log pitch: min: {min :.3f}, max: {max:.3f}, mean: {mean :.3f}, std:  {std :.3f}, non_zero_mean: {non_zero_mean}")
 

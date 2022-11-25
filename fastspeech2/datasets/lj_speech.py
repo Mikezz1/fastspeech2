@@ -52,7 +52,9 @@ def get_data_to_buffer(train_config):
             .values
 
         assert all(pitch_target > 0)
-        pitch_target = np.log(pitch_target)
+
+        if train_config.log_pitch:
+            pitch_target = np.log(pitch_target)
 
         energy_target = torch.from_numpy(energy_target)
         pitch_target = torch.from_numpy(pitch_target)

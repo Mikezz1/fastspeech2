@@ -15,10 +15,16 @@ class FastSpeech(nn.Module):
             model_config, train_config.device)
 
         if train_config.normalize_adapters:
-            bin_min_pitch = (
-                train_config.pitch_min - train_config.pitch_mean) / train_config.pitch_std
-            bin_max_pitch = (
-                train_config.pitch_max - train_config.pitch_mean) / train_config.pitch_std
+            if train_config.log_pitch:
+                bin_min_pitch = (
+                    train_config.log_pitch_min - train_config.log_pitch_mean) / train_config.log_pitch_std
+                bin_max_pitch = (
+                    train_config.log_pitch_max - train_config.log_pitch_mean) / train_config.log_pitch_std
+            else:
+                bin_min_pitch = (
+                    train_config.pitch_min - train_config.pitch_mean) / train_config.pitch_std
+                bin_max_pitch = (
+                    train_config.pitch_max - train_config.pitch_mean) / train_config.pitch_std
 
             bin_min_energy = (
                 train_config.energy_min - train_config.energy_mean) / train_config.energy_std
