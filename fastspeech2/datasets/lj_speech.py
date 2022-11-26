@@ -48,7 +48,7 @@ def get_data_to_buffer(train_config):
             f"{audio_path.split('.')[0]}_p.npy"))
         # pitch_target = pd.Series(pitch_target)\
         #     .replace(0, np.nan).interpolate()\
-        #     .fillna(0)\
+        #     .fillna(train_config.non_zero_mean)\
         #     .values
 
         if train_config.log_pitch:

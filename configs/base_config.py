@@ -10,16 +10,16 @@ class MelSpectrogramConfig:
 @dataclass
 class FastSpeechConfig:
     vocab_size = 300
-    max_seq_len = 1000
+    max_seq_len = 3000
 
     encoder_dim = 256
     encoder_n_layer = 4
-    encoder_head = 2
+    encoder_head = 4
     encoder_conv1d_filter_size = 1024
 
     decoder_dim = 256
     decoder_n_layer = 4
-    decoder_head = 2
+    decoder_head = 4
     decoder_conv1d_filter_size = 1024
 
     fft_conv1d_kernel = (9, 1)
@@ -27,7 +27,7 @@ class FastSpeechConfig:
 
     variance_predictor_filter_size = 256
     variance_predictor_kernel_size = 3
-    variance_predictor_dropout = 0.5
+    variance_predictor_dropout = 0.1
     dropout = 0.1
 
     PAD = 0
@@ -81,7 +81,7 @@ class TrainConfig:
     n_mel_channels = 80
 
     normalize_adapters = True
-    log_pitch = False
+    log_pitch = True
 
     energy_mean = 21.832
     energy_min = 0.018
@@ -97,7 +97,7 @@ class TrainConfig:
     pitch_mean = 129.851
     pitch_min = 0
     pitch_max = 788.677
-    pitch_std = 11.120
+    pitch_std = 111.120
 
     alignment_min = 0
     alignment_max = 74.000  # log

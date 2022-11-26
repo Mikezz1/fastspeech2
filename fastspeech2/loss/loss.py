@@ -14,18 +14,11 @@ class FastSpeechLoss(nn.Module):
                 energy_predictor_target, pitch_predictor_target, mel_mask,
                 src_mask):
 
-        # mel_mask = mel_mask[:, :mel_mask.shape[1]]
-        # print(mel.size())
-        # print(mel_mask.size())
-        # print(mel_target.size())
         mel = mel.masked_select(mel_mask.unsqueeze(2))
         mel_target = mel_target.masked_select(mel_mask.unsqueeze(2))
 
         mel_loss = self.l1_loss(mel, mel_target)
 
-        # print(duration_predicted.size())
-        # print(duration_predictor_target.size())
-        # print(src_mask.size())
         duration_predicted = duration_predicted.masked_select(src_mask)
 
         duration_predictor_target = duration_predictor_target.masked_select(

@@ -14,3 +14,4 @@ checkpoints/*.tar
 __*/
 .DS_Store
 *.ipynb
+legacy_*

@@ -93,11 +93,7 @@ class FastSpeech(nn.Module):
                 output, control_param=e_param)
             pitch_embedding = self.pitch_adaptor(
                 output, control_param=p_param)
-            # print(
-            #     output.size(),
-            #     pitch_embedding.size(),
-            #     energy_embedding.size(),
-            #     x.size())
+
             output = output + pitch_embedding + energy_embedding
             output = self.decoder(output, mel_pos)
             output = self.mel_linear(output)

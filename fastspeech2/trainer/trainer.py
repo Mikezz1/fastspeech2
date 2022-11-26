@@ -15,7 +15,7 @@ class Trainer:
 
     def __init__(
             self, training_loader, train_config, model, logger, optimizer,
-            scheduler, fastspeech_loss):
+            scheduler, fastspeech_loss, vocoder=None):
         self.training_loader = training_loader
         self.train_config = train_config
         self.model = model
@@ -23,6 +23,7 @@ class Trainer:
         self.optimizer = optimizer
         self.scheduler = scheduler
         self.fastspeech_loss = fastspeech_loss
+        self.vocoder = vocoder
 
     def _log_spectrogram(self, spectrogram, caption='spectrogram_t'):
         spectrogram = spectrogram.detach().cpu()

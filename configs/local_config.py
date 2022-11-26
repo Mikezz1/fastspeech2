@@ -71,7 +71,7 @@ class TrainConfig:
     decay_step = [500000, 1000000, 2000000]
 
     save_step = 4
-    log_step = 1
+    log_step = 4
     clear_Time = 20
 
     batch_expand_size = 1
