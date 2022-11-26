@@ -21,9 +21,6 @@ class LengthRegulator(nn.Module):
                                      duration_predictor_output.cpu().numpy())
         alignment = torch.from_numpy(alignment).to(x.device)
 
-        # print(alignment.size())
-        # print(x.size())
-        # x = x.permute(0, 2, 1)
         output = alignment @ x
         if mel_max_length:
             output = F.pad(

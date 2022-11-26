@@ -60,18 +60,18 @@ class Trainer:
             src_pos = np.stack([src_pos])
             sequence = torch.from_numpy(text).long().to(train_config.device)
             src_pos = torch.from_numpy(src_pos).long().to(train_config.device)
-            mel, pitch_embedding, energy_embedding, hidden = model.forward(
+            mel = model.forward(
                 sequence,
                 src_pos,
                 alpha=alpha,
                 e_param=energy,
                 p_param=pitch,
-                debug=True)
+                debug=debug)
 
             # print(mel)
             # print(mel.size())
             model.train()
-        return mel, pitch_embedding, energy_embedding, hidden
+        return mel
 
     def train(self):
         current_step = 0
@@ -103,7 +103,7 @@ class Trainer:
                         self.train_config.device)
 
                     # Forward
-                    debug = True
+                    debug = False
                     if debug:
                         mel_output, duration_predictor_output,\
                             energy_predictor_output, pitch_predictor_output, mel_mask, src_mask, pitch_embedding, energy_embedding, hidden = self.model(
@@ -135,6 +135,10 @@ class Trainer:
 
                     # Backward
                     total_loss.backward()
+
+                    self.optimizer.step()
+
+                    self.scheduler.step()
 
                     if current_step % self.train_config.log_step == 0:
                         t_l = total_loss.detach().cpu().numpy()
@@ -168,53 +172,23 @@ class Trainer:
 
                         # if current_step > 20:
 
-                        if debug:
+                        sample_text = 'Printing, in the only sense with which we are at present concerned, differs from most if not from all the arts and crafts represented in the Exhibition'
 
-                            sample_text = 'Printing, in the only sense with which we are at present concerned, differs from most if not from all the arts and crafts represented in the Exhibition'
+                        sample_mel = self.inference(
+                            self.model, sample_text, self.train_config,
+                            debug=False)
 
-                            sample_mel, pitch_embedding_sample, energy_embedding_sample, sample_hidden = self.inference(
-                                self.model, sample_text, self.train_config, debug=debug)
-                            # print(
-                            #     pitch_embedding.size(),
-                            #     pitch_embedding_sample.size())
-                            # print(
-                            #     energy_embedding.size(),
-                            #     energy_embedding_sample.size())
-                            self._log_audio(
-                                get_inv_mel_spec(sample_mel[0]),
-                                caption='sample audio (istft)')
-                            self._log_spectrogram(
-                                sample_mel[0].T, caption='sample spectrogram')
-
-                            # self._log_spectrogram(
-                            #     pitch_embedding_sample[0],
-                            #     caption='pitch_embedding_inference')
-                            # self._log_spectrogram(
-                            #     pitch_embedding_sample[0],
-                            #     caption='pitch_embedding_train')
-                            # self._log_spectrogram(
-                            #     energy_embedding_sample[0],
-                            #     caption='energy_embedding_inference')
-                            # self._log_spectrogram(
-                            #     energy_embedding[0],
-                            #     caption='energy_embedding_train')
-
-                            # self._log_spectrogram(
-                            #     hidden[0],
-                            #     caption='hidden_train')
-
-                            # self._log_spectrogram(
-                            #     sample_hidden[0],
-                            #     caption='hidden_inference')
+                        self._log_audio(
+                            get_inv_mel_spec(sample_mel[0]),
+                            caption='sample audio (istft)')
+                        self._log_spectrogram(
+                            sample_mel[0].T, caption='sample spectrogram')
 
                     # Clipping gradients to avoid gradient explosion
+                    self.optimizer.zero_grad(set_to_none=True)
                     nn.utils.clip_grad_norm_(
                         self.model.parameters(),
                         self.train_config.grad_clip_thresh)
-
-                    self.optimizer.step()
-                    self.optimizer.zero_grad(set_to_none=True)
-                    self.scheduler.step()
 
                     if current_step % self.train_config.save_step == 0:
                         torch.save(
@@ -222,5 +196,5 @@ class Trainer:
                              'optimizer': self.optimizer.state_dict()},
                             os.path.join(
                                 self.train_config.checkpoint_path,
-                                'checkpoint_%d.pth.tar' % current_step))
+                                f'checkpoint_last_{(current_step + 1) % 10}.pth.tar'))
                         print("save model at step %d ..." % current_step)

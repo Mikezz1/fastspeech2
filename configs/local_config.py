@@ -83,7 +83,7 @@ class TrainConfig:
     n_mel_channels = 80
 
     normalize_adapters = True
-    log_pitch = False
+    log_pitch = True
 
     energy_mean = 21.832
     energy_min = 0.018
@@ -91,15 +91,15 @@ class TrainConfig:
     energy_std = 19.784
 
     pitch_non_zero_mean = 210.759
-    log_pitch_mean = 5.322
-    log_pitch_min = 4.263
+    log_pitch_mean = 3.280
+    log_pitch_min = 0
     log_pitch_max = 6.670
-    log_pitch_std = 0.248
+    log_pitch_std = 2.597
 
-    pitch_mean = 211.323
-    pitch_min = 71.032
+    pitch_mean = 129.851
+    pitch_min = 0
     pitch_max = 788.677
-    pitch_std = 54.511
+    pitch_std = 11.120
 
     alignment_min = 0
     alignment_max = 74.000  # log

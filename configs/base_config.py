@@ -13,13 +13,13 @@ class FastSpeechConfig:
     max_seq_len = 1000
 
     encoder_dim = 256
-    encoder_n_layer = 2
-    encoder_head = 4
+    encoder_n_layer = 4
+    encoder_head = 2
     encoder_conv1d_filter_size = 1024
 
     decoder_dim = 256
-    decoder_n_layer = 2
-    decoder_head = 4
+    decoder_n_layer = 4
+    decoder_head = 2
     decoder_conv1d_filter_size = 1024
 
     fft_conv1d_kernel = (9, 1)
@@ -62,7 +62,7 @@ class TrainConfig:
 
     batch_size = 48
     epoch_len = -1
-    epochs = 150
+    epochs = 350
     n_warm_up_step = 4000
 
     learning_rate = 1e-3
@@ -72,7 +72,7 @@ class TrainConfig:
     save_step = 500
     log_step = 80
 
-    batch_expand_size = 1
+    batch_expand_size = 48
 
     hop_length = 256
     win_length = 1024
@@ -89,15 +89,15 @@ class TrainConfig:
     energy_std = 19.784
 
     pitch_non_zero_mean = 210.759
-    log_pitch_mean = 5.322
-    log_pitch_min = 4.263
+    log_pitch_mean = 3.280
+    log_pitch_min = 0
     log_pitch_max = 6.670
-    log_pitch_std = 0.248
+    log_pitch_std = 2.597
 
-    pitch_mean = 211.323
-    pitch_min = 71.032
+    pitch_mean = 129.851
+    pitch_min = 0
     pitch_max = 788.677
-    pitch_std = 54.511
+    pitch_std = 11.120
 
     alignment_min = 0
     alignment_max = 74.000  # log
