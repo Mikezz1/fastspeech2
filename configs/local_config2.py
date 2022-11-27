@@ -50,14 +50,16 @@ class TrainConfig:
     energy_ground_truth = "./data/energy"
 
     audio_ground_truth = "./data/LJSpeech-1.1/wavs"
-    alignment_path = "./data/alignments"
-    data_path = './data/train.txt'
+    alignment_path = "./data/mfa_alignments"
+    data_path = './data/train_phones.txt'
 
     wandb_project = 'fastspeech_example'
 
     text_cleaners = ['english_cleaners']
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+    use_mfa = True
 
     batch_size = 4
     epoch_len = 4

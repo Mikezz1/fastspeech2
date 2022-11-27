@@ -9,6 +9,7 @@ from fastspeech2.loss.loss import *
 from fastspeech2.logger.utils import *
 from fastspeech2.utils.text import text_to_sequence, sequence_to_text
 import numpy as np
+from g2p_en import G2p
 
 
 class Trainer:
@@ -47,14 +48,13 @@ class Trainer:
             norm_type,
         )
         return total_norm.item()
-    
-    
+
     @torch.no_grad()
     def inference(
-            self, model, text, train_config, alpha=1, energy=1, pitch=1,
-            debug=True):
+            self, model, text, train_config, g2p, alpha=1, energy=1, pitch=1):
         model.eval()
         with torch.no_grad():
+            text = ' '.join(g2p(text))
             char = text_to_sequence(text, train_config.text_cleaners)
             text = np.array(char)
             text = np.stack([text])
@@ -76,6 +76,8 @@ class Trainer:
         current_step = 0
         tqdm_bar = tqdm(total=self.train_config.epochs * len(self.training_loader)
                         * self.train_config.batch_expand_size - current_step)
+        g2p = G2p()
+
         for epoch in range(self.train_config.epochs):
             for i, batchs in enumerate(self.training_loader):
                 # real batch start here
@@ -153,8 +155,7 @@ class Trainer:
                         sample_text = 'defibrillator is a device that gives a high energy electric shock to the heart of someone who is in cardiac arrest'
 
                         sample_mel = self.inference(
-                            self.model, sample_text, self.train_config,
-                            debug=False)
+                            self.model, sample_text, self.train_config, g2p)
 
                         self._log_audio(
                             get_inv_mel_spec(sample_mel[0]),

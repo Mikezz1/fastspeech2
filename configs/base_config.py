@@ -59,6 +59,8 @@ class TrainConfig:
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
+    use_mfa = True
+
     batch_size = 48
     epoch_len = -1
     epochs = 150

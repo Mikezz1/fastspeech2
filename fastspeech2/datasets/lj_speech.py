@@ -7,8 +7,6 @@ import os
 from tqdm import tqdm
 from torch.utils.data import Dataset
 from fastspeech2.utils.utils import *
-from vocoder.audio.stft import STFT
-import torchaudio
 
 
 def calc_pitch(audio):
@@ -22,7 +20,7 @@ def get_data_to_buffer(train_config):
 
     wavs_dir = sorted(os.listdir(train_config.audio_ground_truth))
     start = time.perf_counter()
-    for i, audio_path in zip(range(len(text)), wavs_dir):
+    for i, audio_path in tqdm(zip(range(len(text)), wavs_dir)):
 
         mel_gt_name = os.path.join(
             train_config.mel_ground_truth,
@@ -30,9 +28,15 @@ def get_data_to_buffer(train_config):
         mel_gt_target = np.load(mel_gt_name)
         duration = np.load(os.path.join(
             train_config.alignment_path, str(i)+".npy"))
-        character = text[i][0:len(text[i])-1]
+
+        if train_config.use_mfa:
+            character = '{' + text[i][:-1] + '}'
+        else:
+            character = text[i][0:len(text[i])-1]
         character = np.array(
             text_to_sequence(character, train_config.text_cleaners))
+
+        assert len(character) == len(duration)
 
         character = torch.from_numpy(character)
         duration = torch.from_numpy(duration)

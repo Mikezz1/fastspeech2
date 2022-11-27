@@ -30,6 +30,7 @@ def text_to_sequence(text, cleaner_names):
     # Check for curly braces and treat their contents as ARPAbet:
     while len(text):
         m = _curly_re.match(text)
+
         if not m:
             sequence += _symbols_to_sequence(_clean_text(text, cleaner_names))
             break
@@ -72,4 +73,4 @@ def _arpabet_to_sequence(text):
 
 
 def _should_keep_symbol(s):
-    return s in _symbol_to_id and s is not '_' and s is not '~'
+    return s in _symbol_to_id and s != '_' and s != '~'
