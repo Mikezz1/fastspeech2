@@ -15,7 +15,7 @@ class Trainer:
 
     def __init__(
             self, training_loader, train_config, model, logger, optimizer,
-            scheduler, fastspeech_loss, vocoder=None):
+            scheduler, fastspeech_loss):
         self.training_loader = training_loader
         self.train_config = train_config
         self.model = model
@@ -23,7 +23,6 @@ class Trainer:
         self.optimizer = optimizer
         self.scheduler = scheduler
         self.fastspeech_loss = fastspeech_loss
-        self.vocoder = vocoder
 
     def _log_spectrogram(self, spectrogram, caption='spectrogram_t'):
         spectrogram = spectrogram.detach().cpu()
@@ -48,7 +47,9 @@ class Trainer:
             norm_type,
         )
         return total_norm.item()
-
+    
+    
+    @torch.no_grad()
     def inference(
             self, model, text, train_config, alpha=1, energy=1, pitch=1,
             debug=True):
@@ -66,11 +67,8 @@ class Trainer:
                 src_pos,
                 alpha=alpha,
                 e_param=energy,
-                p_param=pitch,
-                debug=debug)
+                p_param=pitch)
 
-            # print(mel)
-            # print(mel.size())
             model.train()
         return mel
 
@@ -104,29 +102,10 @@ class Trainer:
                         self.train_config.device)
 
                     # Forward
-                    debug = False
-                    if debug:
-                        mel_output, duration_predictor_output,\
-                            energy_predictor_output, pitch_predictor_output, mel_mask, src_mask, pitch_embedding, energy_embedding, hidden = self.model(
-                                character, src_pos, mel_pos=mel_pos,
-                                mel_max_length=max_mel_len, length_target=duration, energy_target=energy_target, pitch_target=pitch_target, debug=debug)
-                    else:
-                        mel_output, duration_predictor_output,\
-                            energy_predictor_output, pitch_predictor_output, mel_mask, src_mask = self.model(
-                                character, src_pos, mel_pos=mel_pos,
-                                mel_max_length=max_mel_len, length_target=duration, energy_target=energy_target, pitch_target=pitch_target)
-
-                    # print(character)
-                    # print('*'*10)
-                    # print(max_mel_len)
-                    # print('*'*10)
-                    # print(duration)
-                    # print('*'*10)
-                    # print(energy_target)
-                    # print('*'*10)
-                    # print(pitch_target)
-                    # print('*'*10)
-                    # print(mel_pos)
+                    mel_output, duration_predictor_output,\
+                        energy_predictor_output, pitch_predictor_output, mel_mask, src_mask = self.model(
+                            character, src_pos, mel_pos=mel_pos,
+                            mel_max_length=max_mel_len, length_target=duration, energy_target=energy_target, pitch_target=pitch_target)
 
                     # Calc Loss
                     mel_loss, duration_loss, energy_loss, pitch_loss = self.fastspeech_loss(
@@ -137,9 +116,7 @@ class Trainer:
                     # Backward
                     total_loss.backward()
 
-                    self.optimizer.step()
-
-                    self.scheduler.step()
+                    # Logger
 
                     if current_step % self.train_config.log_step == 0:
                         t_l = total_loss.detach().cpu().numpy()
@@ -173,7 +150,7 @@ class Trainer:
 
                         # if current_step > 20:
 
-                        sample_text = 'Printing, in the only sense with which we are at present concerned, differs from most if not from all the arts and crafts represented in the Exhibition'
+                        sample_text = 'defibrillator is a device that gives a high energy electric shock to the heart of someone who is in cardiac arrest'
 
                         sample_mel = self.inference(
                             self.model, sample_text, self.train_config,
@@ -186,10 +163,13 @@ class Trainer:
                             sample_mel[0].T, caption='sample spectrogram')
 
                     # Clipping gradients to avoid gradient explosion
-                    self.optimizer.zero_grad(set_to_none=True)
                     nn.utils.clip_grad_norm_(
                         self.model.parameters(),
                         self.train_config.grad_clip_thresh)
+
+                    self.optimizer.step()
+                    self.optimizer.zero_grad(set_to_none=True)
+                    self.scheduler.step()
 
                     if current_step % self.train_config.save_step == 0:
                         torch.save(
@@ -197,5 +177,5 @@ class Trainer:
                              'optimizer': self.optimizer.state_dict()},
                             os.path.join(
                                 self.train_config.checkpoint_path,
-                                f'checkpoint_last_{(current_step + 1) % 10}.pth.tar'))
+                                f'checkpoint_new_last_{(current_step + 1) % 10}.pth.tar'))
                         print("save model at step %d ..." % current_step)

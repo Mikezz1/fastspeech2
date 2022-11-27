@@ -14,38 +14,25 @@ class FastSpeech(nn.Module):
         self.length_regulator = LengthRegulator(
             model_config, train_config.device)
 
-        if train_config.normalize_adapters:
-            if train_config.log_pitch:
-                bin_min_pitch = (
-                    train_config.log_pitch_min - train_config.log_pitch_mean) / train_config.log_pitch_std
-                bin_max_pitch = (
-                    train_config.log_pitch_max - train_config.log_pitch_mean) / train_config.log_pitch_std
-            else:
-                bin_min_pitch = (
-                    train_config.pitch_min - train_config.pitch_mean) / train_config.pitch_std
-                bin_max_pitch = (
-                    train_config.pitch_max - train_config.pitch_mean) / train_config.pitch_std
 
-            bin_min_energy = (
-                train_config.energy_min - train_config.energy_mean) / train_config.energy_std
-            bin_max_energy = (
-                train_config.energy_max - train_config.energy_mean) / train_config.energy_std
-        else:
-            bin_min_pitch = train_config.pitch_min
-            bin_max_pitch = train_config.pitch_max
-            bin_min_energy = train_config.energy_min
-            bin_max_energy = train_config.energy_max
-
-        self.energy_adaptor = VarianceAdaptor(
-            model_config, train_config, train_config.device, bin_min_energy,
-            bin_max_energy)
-        self.pitch_adaptor = VarianceAdaptor(
-            model_config, train_config, train_config.device, bin_min_pitch,
-            bin_max_pitch)
         self.decoder = Decoder(model_config)
 
         self.mel_linear = nn.Linear(
             model_config.decoder_dim, mel_config.num_mels)
+        
+        self.energy_bin_min = (
+             train_config.energy_min - train_config.energy_mean) / train_config.energy_std
+        self.energy_bin_max = (
+             train_config.energy_max - train_config.energy_mean) / train_config.energy_std
+        self.pitch_bin_min = (
+             train_config.pitch_min - train_config.pitch_mean) / train_config.pitch_std
+        self.pitch_bin_max = (
+             train_config.pitch_max - train_config.pitch_mean) / train_config.pitch_std
+        
+        self.energy_adaptor = VarianceAdaptor(
+            model_config, train_config, train_config.device, self.energy_bin_min, self.energy_bin_max)
+        self.pitch_adaptor = VarianceAdaptor(
+            model_config, train_config, train_config.device, self.pitch_bin_min, self.pitch_bin_max)
 
     def mask_tensor(self, mel_output, position, mel_max_length):
         lengths = torch.max(position, -1)[0]
@@ -57,16 +44,15 @@ class FastSpeech(nn.Module):
     def forward(
             self, src_seq, src_pos, mel_pos=None, mel_max_length=None,
             length_target=None, energy_target=None, pitch_target=None,
-            alpha=1.0, e_param=1.0, p_param=1.0, debug=False):
+            alpha=1.0, e_param=1.0, p_param=1.0 ):
         x, src_mask = self.encoder(src_seq, src_pos)
         src_mask = src_mask.bool().squeeze()
+        
+
 
         if self.training:
             output, duration_predictor_output = self.length_regulator(
                 x, alpha, length_target, mel_max_length)
-
-            if debug:
-                hidden = output.detach()
 
             pitch_embedding, pitch_predictor_output = self.pitch_adaptor(
                 output, pitch_target)
@@ -74,31 +60,29 @@ class FastSpeech(nn.Module):
             energy_embedding, energy_predictor_output = self.energy_adaptor(
                 output, energy_target)
 
-            output = output + pitch_embedding + energy_embedding
+            output = output + pitch_embedding
+            output = output + energy_embedding
 
             output = self.decoder(output, mel_pos)
 
+            # print(mask.size())
+
+            ########
             output, mel_mask = self.mask_tensor(
                 output, mel_pos, mel_max_length)
             output = self.mel_linear(output)
-            if debug:
-                return output, duration_predictor_output, energy_predictor_output, pitch_predictor_output, mel_mask, src_mask, pitch_embedding, energy_embedding, hidden
             return output, duration_predictor_output, energy_predictor_output, pitch_predictor_output, mel_mask, src_mask
         else:
-            output, mel_pos = self.length_regulator(
-                x, alpha)
-            if debug:
-                hidden = output.detach()
-            energy_embedding = self.energy_adaptor(
-                output, control_param=e_param)
-            pitch_embedding = self.pitch_adaptor(
-                output, control_param=p_param)
 
-            output = output + pitch_embedding + energy_embedding
+            output, mel_pos = self.length_regulator(x, alpha)
+            energy_embedding = self.energy_adaptor(output, param=e_param)
+            pitch_embedding = self.pitch_adaptor(output, param=p_param)
+            
+            output = output + pitch_embedding
+            output = output + energy_embedding
+            
             output = self.decoder(output, mel_pos)
             output = self.mel_linear(output)
-            if debug:
-                return output, pitch_embedding, energy_embedding, hidden
             return output
 
 

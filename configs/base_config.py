@@ -25,9 +25,8 @@ class FastSpeechConfig:
     fft_conv1d_kernel = (9, 1)
     fft_conv1d_padding = (4, 0)
 
-    variance_predictor_filter_size = 256
-    variance_predictor_kernel_size = 3
-    variance_predictor_dropout = 0.1
+    duration_predictor_filter_size = 256
+    duration_predictor_kernel_size = 3
     dropout = 0.1
 
     PAD = 0
@@ -62,15 +61,17 @@ class TrainConfig:
 
     batch_size = 48
     epoch_len = -1
-    epochs = 350
-    n_warm_up_step = 4000
+    epochs = 150
+    n_warm_up_step = 3000
 
     learning_rate = 1e-3
     weight_decay = 1e-6
     grad_clip_thresh = 1.0
+    decay_step = [500000, 1000000, 2000000]
 
     save_step = 500
     log_step = 80
+    clear_Time = 20
 
     batch_expand_size = 48
 
@@ -80,26 +81,17 @@ class TrainConfig:
     sampling_rate = 22_500
     n_mel_channels = 80
 
-    normalize_adapters = True
-    log_pitch = True
-
     energy_mean = 21.832
     energy_min = 0.018
     energy_max = 314.962
     energy_std = 19.784
 
-    pitch_non_zero_mean = 210.759
-    log_pitch_mean = 3.280
-    log_pitch_min = 0
-    log_pitch_max = 6.670
-    log_pitch_std = 2.597
-
     pitch_mean = 129.851
-    pitch_min = 0
+    pitch_min = 0.000
     pitch_max = 788.677
     pitch_std = 111.120
 
     alignment_min = 0
-    alignment_max = 74.000  # log
+    alignment_max = 4.304  # log
     alignment_mean = 5.669
     alignment_std = 4.940

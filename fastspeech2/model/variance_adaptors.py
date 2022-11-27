@@ -42,42 +42,61 @@ class LengthRegulator(nn.Module):
             return output, mel_pos
 
 
+
+#         bin_min = (
+#             train_config.energy_min - train_config.energy_mean) / train_config.energy_std
+#         bin_max = (
+#             train_config.energy_max - train_config.energy_mean) / train_config.energy_std
+#         bin_min = (
+#             train_config.pitch_min - train_config.pitch_mean) / train_config.pitch_std
+#         bin_max = (
+#             train_config.pitch_max - train_config.pitch_mean) / train_config.pitch_std
+
+
+
 class VarianceAdaptor(nn.Module):
+    """ Energy adaptor
+    Add quantization
+    """
 
     def __init__(self,  model_config, train_config, device, bin_min, bin_max):
         super(VarianceAdaptor, self).__init__()
         self.variance_predictor = VariancePredictor(model_config)
         self.device = device
         self.embedding = nn.Embedding(256, model_config.encoder_dim)
+
         self.bins = nn.Parameter(
-            torch.linspace(bin_min, bin_max, 255),
+            torch.exp(
+                torch.linspace(bin_min, bin_max, 256 - 1)
+            ),
             requires_grad=False,
         )
 
-    def forward(self, x, target=None, control_param=1):
+    def forward(self, x, target=None, param=1.0):
         predictions = self.variance_predictor(x)
         if target is not None:
-            # print(f'pitch target  size: {target.size()}')
-            # print(f'pitch pred  size: {predictions.size()}')
             embedding = self.embedding(
                 torch.bucketize(target, self.bins))
+            #x = x+embedding
             return embedding, predictions
         else:
             embedding = self.embedding(
-                torch.bucketize(control_param*predictions, self.bins))
+                torch.bucketize(param*predictions, self.bins))
+            #x += embedding
             return embedding
 
 
 class VariancePredictor(nn.Module):
+    """ Duration Predictor """
 
     def __init__(self, model_config):
         super(VariancePredictor, self).__init__()
 
         self.input_size = model_config.encoder_dim
-        self.filter_size = model_config.variance_predictor_filter_size
-        self.kernel = model_config.variance_predictor_kernel_size
-        self.conv_output_size = model_config.variance_predictor_filter_size
-        self.dropout = model_config.variance_predictor_dropout
+        self.filter_size = model_config.duration_predictor_filter_size
+        self.kernel = model_config.duration_predictor_kernel_size
+        self.conv_output_size = model_config.duration_predictor_filter_size
+        self.dropout = model_config.dropout
 
         self.conv_net = nn.Sequential(
             Transpose(-1, -2),

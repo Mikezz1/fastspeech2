@@ -9,7 +9,6 @@ from torch.utils.data import Dataset
 from fastspeech2.utils.utils import *
 from vocoder.audio.stft import STFT
 import torchaudio
-import pandas as pd
 
 
 def calc_pitch(audio):
@@ -46,27 +45,15 @@ def get_data_to_buffer(train_config):
         pitch_target = np.load(os.path.join(
             train_config.pitch_ground_truth,
             f"{audio_path.split('.')[0]}_p.npy"))
-        # pitch_target = pd.Series(pitch_target)\
-        #     .replace(0, np.nan).interpolate()\
-        #     .fillna(train_config.non_zero_mean)\
-        #     .values
-
-        if train_config.log_pitch:
-            pitch_target = np.log(1 + pitch_target)
 
         energy_target = torch.from_numpy(energy_target)
         pitch_target = torch.from_numpy(pitch_target)
 
         # transform targets
-        if train_config.normalize_adapters:
-            energy_target = (
-                energy_target - train_config.energy_mean) / train_config.energy_std
-            if train_config.log_pitch:
-                pitch_target = (
-                    pitch_target - train_config.log_pitch_mean) / train_config.log_pitch_std
-            else:
-                pitch_target = (
-                    pitch_target - train_config.pitch_mean) / train_config.pitch_std
+        energy_target = (
+            energy_target - train_config.energy_mean) / train_config.energy_std
+        pitch_target = (
+            pitch_target - train_config.pitch_mean) / train_config.pitch_std
 
         buffer.append({"text": character, "duration": duration,
                        "mel_target": mel_gt_target,
