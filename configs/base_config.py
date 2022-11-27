@@ -14,12 +14,12 @@ class FastSpeechConfig:
 
     encoder_dim = 256
     encoder_n_layer = 4
-    encoder_head = 4
+    encoder_head = 2
     encoder_conv1d_filter_size = 1024
 
     decoder_dim = 256
     decoder_n_layer = 4
-    decoder_head = 4
+    decoder_head = 2
     decoder_conv1d_filter_size = 1024
 
     fft_conv1d_kernel = (9, 1)

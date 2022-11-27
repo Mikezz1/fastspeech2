@@ -1,4 +1,3 @@
-
 import torch
 import numpy as np
 from fastspeech2.utils.text import text_to_sequence
@@ -7,6 +6,7 @@ import os
 from tqdm import tqdm
 from torch.utils.data import Dataset
 from fastspeech2.utils.utils import *
+from fastspeech2.utils.text.symbols import symbols
 
 
 def calc_pitch(audio):
@@ -30,11 +30,23 @@ def get_data_to_buffer(train_config):
             train_config.alignment_path, str(i)+".npy"))
 
         if train_config.use_mfa:
-            character = '{' + text[i][:-1] + '}'
+            character = text[i][:-1]
+            _symbol_to_id = {s: i for i, s in enumerate(symbols)}
+            # print(_symbol_to_id)
+            seq = []
+            for symbol in character.split(' '):
+                if symbol == "spn":
+                    symbol = " "
+                    seq.append(_symbol_to_id[symbol])
+                else:
+                    seq.append(_symbol_to_id['@' + symbol])
+
+            character = np.array(seq)
+
         else:
             character = text[i][0:len(text[i])-1]
-        character = np.array(
-            text_to_sequence(character, train_config.text_cleaners))
+            character = np.array(
+                text_to_sequence(character, train_config.text_cleaners))
 
         assert len(character) == len(duration)
 

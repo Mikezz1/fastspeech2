@@ -3,3 +3,4 @@ wandb
 gdown
 unidecode
 pyworld
+g2p_en

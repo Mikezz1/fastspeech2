@@ -62,7 +62,7 @@ class TrainConfig:
     use_mfa = True
 
     batch_size = 4
-    epoch_len = 4
+    epoch_len = 400
     epochs = 15
     n_warm_up_step = 30
 

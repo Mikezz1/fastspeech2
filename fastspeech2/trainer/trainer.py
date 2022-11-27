@@ -54,7 +54,8 @@ class Trainer:
             self, model, text, train_config, g2p, alpha=1, energy=1, pitch=1):
         model.eval()
         with torch.no_grad():
-            text = ' '.join(g2p(text))
+            if train_config.use_mfa:
+                text = ' '.join(g2p(text))
             char = text_to_sequence(text, train_config.text_cleaners)
             text = np.array(char)
             text = np.stack([text])

@@ -14,7 +14,8 @@ gdown https://drive.google.com/u/0/uc?id=1NJfQEq-NNgat0AbCa92umHgDTkY1yQwT
 mv train_phones ./data/
 
 gdown https://drive.google.com/u/0/uc?id=1KyOdopKxOG3q4zYJg1aze8ujWc9bwiwW
-mv mfa_alignments ./data/
+tar -xvf mfa_alignments.tar.gz
+mv mfa_alignments ./data/mfa_alignments
 
 #download Waveglow
 # gdown https://drive.google.com/u/0/uc?id=1WsibBTsuRg_SF2Z6L6NFRTT-NjEy1oTx
