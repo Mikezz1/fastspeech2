@@ -63,7 +63,7 @@ class TrainConfig:
 
     batch_size = 48
     epoch_len = -1
-    epochs = 150
+    epochs = 300
     n_warm_up_step = 3000
 
     learning_rate = 1e-3
