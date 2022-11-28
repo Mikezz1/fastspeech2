@@ -14,7 +14,6 @@ class Aligner:
     def __call__(self, grid):
         phones = []
         durations = []
-        start_time = 0
         end_idx = 0
         for t in grid._objects:
             s, e, p = t.start_time, t.end_time, t.text

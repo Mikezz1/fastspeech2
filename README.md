@@ -19,10 +19,11 @@ sh bins/setup.sh
 Run inference script:
 
 ```bash
-python inference.py
+cd vocoder
+python infer.py
 ```
 
-You can specify `-s`, `-p` and `-e` params to control for speed, pitch and energy of predictions. You may also change model checkpoint with `-path` param and limit the number of test text prompts with `-n` param. All the outputs will be saved to `vocoder/results` folder. Note that inference script rely on pre-trained Waveglow vocoder.
+You can specify `-s`, `-p` and `-e` params to control for speed, pitch and energy of predictions. You may also change model checkpoint with `-path` param and limit the number of test text prompts with `-n` param. All the outputs will be saved to `vocoder/results` folder. Note that inference script rely on pre-trained Waveglow vocoder. Also,
 
 ## Training
 
