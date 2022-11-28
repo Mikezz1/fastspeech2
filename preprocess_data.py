@@ -7,7 +7,6 @@ import torch
 import numpy as np
 import pyworld as pw
 from configs.base_config import *
-# main
 
 
 def calc_pitch(audio, config):
@@ -21,7 +20,6 @@ def calc_pitch(audio, config):
 
 
 def main(config):
-    # read wav
     os.makedirs(config.mel_ground_truth, exist_ok=True)
     os.makedirs(config.pitch_ground_truth, exist_ok=True)
     os.makedirs(config.energy_ground_truth, exist_ok=True)

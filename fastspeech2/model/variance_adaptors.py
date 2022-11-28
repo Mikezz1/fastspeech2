@@ -64,7 +64,7 @@ class VarianceAdaptor(nn.Module):
     def init_exp_bins(self, min_value, max_value):
         return nn.Parameter(
             torch.exp(
-                torch.linspace(bin_min, bin_max, 255)
+                torch.linspace(min_value, max_value, 255)
             ),
             requires_grad=False,
         )

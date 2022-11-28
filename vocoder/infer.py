@@ -1,28 +1,27 @@
+import sys
 import os
-# os.chdir('../')
-
-
-from fastspeech2.utils.utils import *
-from fastspeech2.trainer.trainer import *
-from fastspeech2.model.fastspeech import *
-from fastspeech2.loss.loss import *
-from fastspeech2.datasets.lj_speech import *
-from fastspeech2.collate_fn.collate_fn import *
-from fastspeech2.logger.wandb_writer import *
+sys.path.append(os.path.abspath('../'))
 import torch
 from configs.base_config import *
 from fastspeech2.utils.text import text_to_sequence
 import argparse
-from vocoder import utils
-from vocoder import waveglow
-
+import utils
+import waveglow
+from fastspeech2.logger.wandb_writer import *
+from fastspeech2.collate_fn.collate_fn import *
+from fastspeech2.datasets.lj_speech import *
+from fastspeech2.loss.loss import *
+from fastspeech2.model.fastspeech import *
+from fastspeech2.trainer.trainer import *
+from fastspeech2.utils.utils import *
+sys.path.append(os.path.abspath('../vocoder'))
 
 def get_data(train_config, n=-1):
     tests = [
         'A defibrillator is a device that gives a high energy electric shock to the heart of someone who is in cardiac arrest',
-        'Printing, in the only sense with which we are at present concerned, differs from most if not from all the arts and crafts represented in the Exhibition',
         'Massachusetts Institute of Technology may be best known for its math, science and engineering education',
-        'Wasserstein distance or Kantorovich Rubinstein metric is a distance function defined between probability distributions on a given metric space', '']
+        'Wasserstein distance or Kantorovich Rubinstein metric is a distance function defined between probability distributions on a given metric space',
+        '']
     data_list = list(text_to_sequence(test, train_config.text_cleaners)
                      for test in tests)
 
@@ -52,9 +51,6 @@ def main():
 
     model = FastSpeech(model_config, mel_config, train_config)
     model = model.to(train_config.device)
-    print(os.getcwd())
-    os.chdir('./vocoder')
-    print(os.getcwd())
 
     WaveGlow = utils.get_WaveGlow()
     WaveGlow = WaveGlow.cpu()
@@ -78,16 +74,16 @@ def main():
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-n", default=-1, type=int,
+    parser.add_argument("-n", default=-1, type=float,
                         help="num of examples"
                         )
-    parser.add_argument("-p", default=1, type=int,
+    parser.add_argument("-p", default=1, type=float,
                         help="pitch"
                         )
-    parser.add_argument("-e", default=1, type=int,
+    parser.add_argument("-e", default=1, type=float,
                         help="energy"
                         )
-    parser.add_argument("-s", default=1, type=int,
+    parser.add_argument("-s", default=1, type=float,
                         help="speed"
                         )
 

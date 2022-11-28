@@ -2,6 +2,9 @@
 
 mkdir ./data
 mkdir ./checkpoints
+gdown https://drive.google.com/u/0/uc?id=1pzgBQ69vRp83EyJKLKkytnKesiWTKOtD
+mv checkpoint_new_last_1.pth.tar ./checkpoints
+
 wget https://data.keithito.com/data/speech/LJSpeech-1.1.tar.bz2 -o /dev/null
 tar -xvf LJSpeech-1.1.tar.bz2 >> /dev/null
 mv LJSpeech-1.1 ./data/LJSpeech-1.1
@@ -18,8 +21,8 @@ tar -xvf mfa_alignments.tar.gz
 mv mfa_alignments ./data/mfa_alignments
 
 #download Waveglow
-# gdown https://drive.google.com/u/0/uc?id=1WsibBTsuRg_SF2Z6L6NFRTT-NjEy1oTx
-# mv waveglow_256channels_ljs_v2.pt ..vocoder/waveglow/pretrained_model/waveglow_256channels.pt
+gdown https://drive.google.com/u/0/uc?id=1WsibBTsuRg_SF2Z6L6NFRTT-NjEy1oTx
+mv waveglow_256channels_ljs_v2.pt ..vocoder/waveglow/pretrained_model/waveglow_256channels.pt
 
 # load pre-computed melspecs, pitch and energy vectors
 gdown https://drive.google.com/u/0/uc?id=1lwes4q0G_KSw9V4kKf7YNDTJMDnwSw3t

@@ -1,2 +1,2 @@
-import vocoder.waveglow.inference
-import vocoder.waveglow.mel2samp
+import waveglow.inference
+import waveglow.mel2samp

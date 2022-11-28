@@ -11,7 +11,7 @@ Note that this repo utilizes [fastspeech](https://github.com/xcmyz/FastSpeech) b
 Set up the environment. `setup.sh` script will download and unpack dataset, pre-computed input vectors and model checkpoints.
 
 ```bash
-git clone https://github.com/Mikezz1/fastspeech2.git
+git clone -b best_model https://github.com/Mikezz1/fastspeech2.git
 pip install -r requirements.txt
 sh bins/setup.sh
  ```
