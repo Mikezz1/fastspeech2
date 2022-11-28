@@ -4,7 +4,6 @@ from fastspeech2.model.blocks import *
 
 
 class LengthRegulator(nn.Module):
-    """ Length Regulator """
 
     def __init__(self, model_config, device):
         super(LengthRegulator, self).__init__()
@@ -42,52 +41,36 @@ class LengthRegulator(nn.Module):
             return output, mel_pos
 
 
-
-#         bin_min = (
-#             train_config.energy_min - train_config.energy_mean) / train_config.energy_std
-#         bin_max = (
-#             train_config.energy_max - train_config.energy_mean) / train_config.energy_std
-#         bin_min = (
-#             train_config.pitch_min - train_config.pitch_mean) / train_config.pitch_std
-#         bin_max = (
-#             train_config.pitch_max - train_config.pitch_mean) / train_config.pitch_std
-
-
-
 class VarianceAdaptor(nn.Module):
-    """ Energy adaptor
-    Add quantization
-    """
 
     def __init__(self,  model_config, train_config, device, bin_min, bin_max):
         super(VarianceAdaptor, self).__init__()
         self.variance_predictor = VariancePredictor(model_config)
         self.device = device
         self.embedding = nn.Embedding(256, model_config.encoder_dim)
-
-        self.bins = nn.Parameter(
-            torch.exp(
-                torch.linspace(bin_min, bin_max, 256 - 1)
-            ),
-            requires_grad=False,
-        )
+        self.bins = self.init_exp_bins(bin_min, bin_max)
 
     def forward(self, x, target=None, param=1.0):
         predictions = self.variance_predictor(x)
         if target is not None:
             embedding = self.embedding(
                 torch.bucketize(target, self.bins))
-            #x = x+embedding
             return embedding, predictions
         else:
             embedding = self.embedding(
                 torch.bucketize(param*predictions, self.bins))
-            #x += embedding
             return embedding
+
+    def init_exp_bins(self, min_value, max_value):
+        return nn.Parameter(
+            torch.exp(
+                torch.linspace(bin_min, bin_max, 255)
+            ),
+            requires_grad=False,
+        )
 
 
 class VariancePredictor(nn.Module):
-    """ Duration Predictor """
 
     def __init__(self, model_config):
         super(VariancePredictor, self).__init__()

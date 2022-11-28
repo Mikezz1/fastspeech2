@@ -14,21 +14,20 @@ class FastSpeech(nn.Module):
         self.length_regulator = LengthRegulator(
             model_config, train_config.device)
 
-
         self.decoder = Decoder(model_config)
 
         self.mel_linear = nn.Linear(
             model_config.decoder_dim, mel_config.num_mels)
-        
+
         self.energy_bin_min = (
-             train_config.energy_min - train_config.energy_mean) / train_config.energy_std
+            train_config.energy_min - train_config.energy_mean) / train_config.energy_std
         self.energy_bin_max = (
-             train_config.energy_max - train_config.energy_mean) / train_config.energy_std
+            train_config.energy_max - train_config.energy_mean) / train_config.energy_std
         self.pitch_bin_min = (
-             train_config.pitch_min - train_config.pitch_mean) / train_config.pitch_std
+            train_config.pitch_min - train_config.pitch_mean) / train_config.pitch_std
         self.pitch_bin_max = (
-             train_config.pitch_max - train_config.pitch_mean) / train_config.pitch_std
-        
+            train_config.pitch_max - train_config.pitch_mean) / train_config.pitch_std
+
         self.energy_adaptor = VarianceAdaptor(
             model_config, train_config, train_config.device, self.energy_bin_min, self.energy_bin_max)
         self.pitch_adaptor = VarianceAdaptor(
@@ -44,11 +43,9 @@ class FastSpeech(nn.Module):
     def forward(
             self, src_seq, src_pos, mel_pos=None, mel_max_length=None,
             length_target=None, energy_target=None, pitch_target=None,
-            alpha=1.0, e_param=1.0, p_param=1.0 ):
+            alpha=1.0, e_param=1.0, p_param=1.0):
         x, src_mask = self.encoder(src_seq, src_pos)
         src_mask = src_mask.bool().squeeze()
-        
-
 
         if self.training:
             output, duration_predictor_output = self.length_regulator(
@@ -65,9 +62,6 @@ class FastSpeech(nn.Module):
 
             output = self.decoder(output, mel_pos)
 
-            # print(mask.size())
-
-            ########
             output, mel_mask = self.mask_tensor(
                 output, mel_pos, mel_max_length)
             output = self.mel_linear(output)
@@ -77,10 +71,10 @@ class FastSpeech(nn.Module):
             output, mel_pos = self.length_regulator(x, alpha)
             energy_embedding = self.energy_adaptor(output, param=e_param)
             pitch_embedding = self.pitch_adaptor(output, param=p_param)
-            
+
             output = output + pitch_embedding
             output = output + energy_embedding
-            
+
             output = self.decoder(output, mel_pos)
             output = self.mel_linear(output)
             return output
@@ -171,11 +165,9 @@ class Decoder(nn.Module):
 
         dec_slf_attn_list = []
 
-        # -- Prepare masks
         slf_attn_mask = get_attn_key_pad_mask(seq_k=enc_pos, seq_q=enc_pos)
         non_pad_mask = get_non_pad_mask(enc_pos)
 
-        # -- Forward
         dec_output = enc_seq + self.position_enc(enc_pos)
 
         for dec_layer in self.layer_stack:

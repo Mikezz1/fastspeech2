@@ -2,7 +2,6 @@
 import numpy as np
 import tgt
 import os
-# import pandas as pd
 from tqdm import tqdm
 
 
@@ -16,25 +15,13 @@ class Aligner:
         phones = []
         durations = []
         start_time = 0
-        end_time = 0
         end_idx = 0
         for t in grid._objects:
             s, e, p = t.start_time, t.end_time, t.text
-
-            # Trim leading silences
-            if phones == []:
-                if p in self.sil_phones:
-                    continue
-                else:
-                    start_time = s
-
             if p not in self.sil_phones:
-                # For ordinary phones
                 phones.append(p)
-                end_time = e
                 end_idx = len(phones)
             else:
-                # For silent phones
                 phones.append(p)
 
             durations.append(
@@ -70,8 +57,6 @@ if __name__ == '__main__':
 
         durations = np.array(durations)
 
-        # print(len(durations))
-        # print(len(phones.split(' ')))
         assert len(durations) == len(phones.split(' '))
 
         np.save(

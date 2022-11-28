@@ -44,9 +44,6 @@ def main(config):
         energy = torch.linalg.norm(magnitude, dim=0,  ord=2).numpy()
         pitch = calc_pitch(waveform, config)
 
-        # assert pitch.shape[0] == energy.shape[0] == mel.shape[1]
-        # assert mel.shape[0] == config.n_mel_channels
-
         # save everything
         np.save(
             f"{config.mel_ground_truth}/{audio_path.split('.')[0]}_mel.npy",

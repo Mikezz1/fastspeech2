@@ -5,7 +5,6 @@ import torch.nn.functional as F
 
 
 class ScaledDotProductAttention(nn.Module):
-    ''' Scaled Dot-Product Attention '''
 
     def __init__(self, temperature, attn_dropout=0.1):
         super().__init__()
@@ -14,7 +13,6 @@ class ScaledDotProductAttention(nn.Module):
         self.softmax = nn.Softmax(dim=2)
 
     def forward(self, q, k, v, mask=None):
-        # q, k, v: [ (batch_size * n_heads) x seq_len x hidden_size ]
 
         attn = torch.bmm(q, k.transpose(-1, -2))
         attn /= self.temperature
@@ -29,8 +27,6 @@ class ScaledDotProductAttention(nn.Module):
 
 
 class MultiHeadAttention(nn.Module):
-    ''' Multi-Head Attention module '''
-
     def __init__(self, n_head, d_model, d_k, d_v, dropout=0.1):
         super().__init__()
 
@@ -45,7 +41,6 @@ class MultiHeadAttention(nn.Module):
 
         self.attention = ScaledDotProductAttention(
             temperature=d_k**0.5)
-        #self.layer_norm = nn.LayerNorm(d_model)
 
         self.fc = nn.Linear(n_head * d_v, d_model)
         nn.init.xavier_normal_(self.fc.weight)
@@ -55,7 +50,6 @@ class MultiHeadAttention(nn.Module):
         self.reset_parameters()
 
     def reset_parameters(self):
-        # normal distribution initialization better than kaiming(default in pytorch)
         nn.init.normal_(self.w_qs.weight, mean=0,
                         std=np.sqrt(2.0 / (self.d_model + self.d_k)))
         nn.init.normal_(self.w_ks.weight, mean=0,
@@ -77,14 +71,14 @@ class MultiHeadAttention(nn.Module):
         v = self.w_vs(v).view(sz_b, len_v, n_head, d_v)
 
         q = q.permute(2, 0, 1, 3).contiguous(
-        ).view(-1, len_q, d_k)  # (n*b) x lq x dk
+        ).view(-1, len_q, d_k)
         k = k.permute(2, 0, 1, 3).contiguous(
-        ).view(-1, len_k, d_k)  # (n*b) x lk x dk
+        ).view(-1, len_k, d_k)
         v = v.permute(2, 0, 1, 3).contiguous(
-        ).view(-1, len_v, d_v)  # (n*b) x lv x dv
+        ).view(-1, len_v, d_v)
 
         if mask is not None:
-            mask = mask.repeat(n_head, 1, 1)  # (n*b) x .. x ..
+            mask = mask.repeat(n_head, 1, 1)
         output, attn = self.attention(q, k, v, mask=mask)
 
         output = output.view(n_head, sz_b, len_q, d_v)
@@ -93,25 +87,20 @@ class MultiHeadAttention(nn.Module):
             sz_b, len_q, -1)  # b x lq x (n*dv)
 
         output = self.dropout(self.fc(output))
-        #output = self.layer_norm(output + residual)
 
         return output, attn
 
 
 class PositionwiseFeedForward(nn.Module):
-    ''' A two-feed-forward-layer module '''
 
     def __init__(
             self, d_in, d_hid, fft_conv1d_kernel, fft_conv1d_padding,
             dropout=0.1):
         super().__init__()
 
-        # Use Conv1D
-        # position-wise
         self.w_1 = nn.Conv1d(
             d_in, d_hid, kernel_size=fft_conv1d_kernel[0],
             padding=fft_conv1d_padding[0])
-        # position-wise
         self.w_2 = nn.Conv1d(
             d_hid, d_in, kernel_size=fft_conv1d_kernel[1],
             padding=fft_conv1d_padding[1])
@@ -133,7 +122,6 @@ class PositionwiseFeedForward(nn.Module):
 
 
 class FFTBlock(torch.nn.Module):
-    """FFT Block"""
 
     def __init__(self,
                  d_model,
